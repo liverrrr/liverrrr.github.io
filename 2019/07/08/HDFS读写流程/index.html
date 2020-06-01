@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HDFS读写流程 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HDFS读写流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HDFS读写流程
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/08/HDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2019-07-07T16:00:30.000Z" itemprop="datePublished">2019-07-08</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <h3 id="读流程"><a href="#读流程" class="headerlink" title="读流程"></a>读流程</h3><p><img src="/images/HDFS%E8%AF%BB%E6%B5%81%E7%A8%8B.png" alt="HDFS读流程"></p>
+<ol>
+<li>client使用FileSystem.open(filepath)来<strong>rpc</strong>调用NN，NN接受到请求会进行权限等一系列check</li>
+<li>如果都ok，就会返回该文件全部或部分block列表(也就是FSInputStream)，如果过不了check直接抛出异常。</li>
+<li>client调用<strong>FSInputStream</strong>的read方法去找到离最近的DN读取block数据，在读取之后会check。如果失败会记录该DN和这个副本信息，下次不会在这个DN读取，如果没问题就继续读取下一个block。当全部block列表读取完之后该文件还没结束，那么filesystem会继续向NN获取下一批block列表。</li>
+<li>读取文件完毕，client关闭<strong>FSInputStream</strong>。</li>
+</ol>
+<h3 id="写流程"><a href="#写流程" class="headerlink" title="写流程"></a>写流程</h3><p><img src="/images/HDFS%E5%86%99%E6%B5%81%E7%A8%8B.png" alt="HDFS写流程"></p>
+<ol>
+<li>client调用FileSysytem.create(filepath)来<strong>rpc</strong>调用NN。</li>
+<li>NN会对这个filepath进行check，例如是不是已经存在该文件等，如果没通过check就会返回异常信息，否则返回<strong>FSOutputStream</strong>并创建一个未与block联系的路径。</li>
+<li>client使用<strong>FSOutputStream</strong>来进行block的写入，<strong>将第一个块的第一个副本写入DN1,第一个副本写完传输给第二个DN2,第二个副本写完就传输给第三个DN3，当第DN3写完，就返回一个ack packet给DN2，DN2就返回ack packet给DN1，DN1就返回ack packet的FSDataOutputStream对象</strong>，标识第一个块的三个副本都写完了，余下的块都是这样写入。如果其中有一个DN出现故障那么数据流会重新调整，绕过故障DN。</li>
+<li>client写完数据关闭FSOutputStream。</li>
+<li>同时client调用filesystem的complete通知NN写入操作已经完成。</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/08/HDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckawoucx50007yguda76yf7w5" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+    
+      <a href="/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">生产HDFS上Block损坏恢复最佳实践</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

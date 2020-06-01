@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Linux基础知识系列之进程和端口 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Linux基础知识系列之进程和端口" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Linux基础知识系列之进程和端口
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/" class="article-date">
+  <time datetime="2019-06-20T16:00:00.000Z" itemprop="datePublished">2019-06-21</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文是Linux基础知识系列的进程与端口篇，主要讲述如何查看Linux进程和端口，同时介绍如何杀死进程和查看服务的端口是否对外可访问。</p>
+<a id="more"></a>
+<h3 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h3><p>查看进程是工作中使用频率较高的需求，一般来说使用的就是<em>ps -ef | grep xxx</em>，执行之后就是如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ps -ef | grep tail </span><br><span class="line">root      9831  9779  0 22:10 pts&#x2F;1    00:00:00 tail -f tail.log</span><br><span class="line">root      9893  8818  0 22:11 pts&#x2F;0    00:00:00 grep --color&#x3D;auto tail</span><br><span class="line">进程用户   pid  父pid                            进程内容</span><br><span class="line"></span><br><span class="line">#返回结果不带grep</span><br><span class="line">[root@hadoop001 ~]# ps -ef | grep tail | grep -v grep</span><br><span class="line">root      9831  9779  0 22:10 pts&#x2F;1    00:00:00 tail -f tail.log</span><br></pre></td></tr></table></figure>
+<p>一般kill命令与此相搭配，<em>kill -9 pid</em> 杀死pid的进程。不过生产上执行该命令之前，一定要确认清楚：</p>
+<ol>
+<li><strong>该进程是否真的杀？</strong></li>
+<li><strong>杀的进程是否你想要杀？</strong></li>
+</ol>
+<p>这里也提供批量杀进程，<em>kill -9 $(pgrep -f xxx)</em>，杀掉与xxx相关的命令，但是这个命令也会<strong>误杀掉你不想杀掉的同名的xxx进程，不建议使用。</strong></p>
+<h3 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h3><p>怎么查看服务使用的端口呢？一般使用的都是<em>netstat -nlp | grep pid</em>，这个就可以与上面的结合使用了，下面举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># sshd服务有许多进程，主要关注pid和父pid</span><br><span class="line">[root@hadoop001 ~]# ps -ef | grep sshd</span><br><span class="line">root      3315     1  0 14:13 ?        00:00:00 &#x2F;usr&#x2F;sbin&#x2F;sshd -D   &lt;-- 主要</span><br><span class="line">root      8816  3315  0 22:05 ?        00:00:00 sshd: root@pts&#x2F;0</span><br><span class="line">root      9776  3315  0 22:10 ?        00:00:00 sshd: root@pts&#x2F;1</span><br><span class="line">root      9834  3315  0 22:10 ?        00:00:00 sshd: root@pts&#x2F;2</span><br><span class="line">root     11499  8818  0 22:27 pts&#x2F;0    00:00:00 grep --color&#x3D;auto sshd</span><br><span class="line"></span><br><span class="line">[root@hadoop001 ~]# netstat -nlp | grep 3315</span><br><span class="line">tcp        0     0   0.0.0.0:22      0.0.0.0:*       LISTEN      3315&#x2F;sshd           </span><br><span class="line">tcp6       0     0   :::22           :::*            LISTEN      3315&#x2F;sshd</span><br></pre></td></tr></table></figure>
+<p>通过上述可以看出sshd服务的端口是22，<strong>而且22前面的要是机器的ip或0.0.0.0 或 :::，表示对外的任意ip可以服务，但是127.0.0.1或localhost,只能在这台的机器上访问这个服务。</strong><br>所以，如果你想要看一个的服务的端口，流程就是服务名称-&gt;pid-&gt;port。</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/" data-id="ckawoucxe000mygud6w0bh63m" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Linux基础知识系列之四种常见错误以及校验
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Linux基础知识系列之三</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    hadoop无法正常停止 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-hadoop无法正常停止" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      hadoop无法正常停止
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" class="article-date">
+  <time datetime="2019-07-06T13:32:35.000Z" itemprop="datePublished">2019-07-06</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>在某次启动hdfs之后，在一个月之后，需要将其重启，但却发现无法停止，无奈只有kill掉进程，再次启动。我并不打算将其问题放弃，想看看到底是什么原因导致这个情况。</p>
+<a id="more"></a>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在某次启动hdfs之后，在一个月之后，需要将其重启，但却发现无法停止，无奈只有kill掉进程，再次启动。我并不打算将其问题放弃，想看看到底是什么原因导致这个情况。</p>
+<h3 id="查看停止脚本"><a href="#查看停止脚本" class="headerlink" title="查看停止脚本"></a>查看停止脚本</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 sbin]$ vim stop-dfs.sh </span><br><span class="line">....</span><br><span class="line"># namenodes</span><br><span class="line"></span><br><span class="line">NAMENODES&#x3D;$($HADOOP_PREFIX&#x2F;bin&#x2F;hdfs getconf -namenodes)</span><br><span class="line"></span><br><span class="line">echo &quot;Stopping namenodes on [$NAMENODES]&quot;</span><br><span class="line"></span><br><span class="line">&quot;$HADOOP_PREFIX&#x2F;sbin&#x2F;hadoop-daemons.sh&quot; \        &lt;--- 调用另一个脚本</span><br><span class="line">  --config &quot;$HADOOP_CONF_DIR&quot; \</span><br><span class="line">  --hostnames &quot;$NAMENODES&quot; \</span><br><span class="line">  --script &quot;$bin&#x2F;hdfs&quot; stop namenode</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 sbin]$ vim hadoop-daemons.sh</span><br><span class="line">...</span><br><span class="line"># 这里又调用了hadoop-daemon.sh脚本</span><br><span class="line">exec &quot;$bin&#x2F;slaves.sh&quot; --config $HADOOP_CONF_DIR cd &quot;$HADOOP_PREFIX&quot; \; &quot;$bin&#x2F;hadoop-daemon.sh&quot;</span><br><span class="line">--config $HADOOP_CONF_DIR &quot;$@&quot;</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 sbin]$ vim hadoop-daemon.sh </span><br><span class="line">...</span><br><span class="line">#   HADOOP_PID_DIR   The pid files are stored. &#x2F;tmp by default.</span><br><span class="line">#   HADOOP_IDENT_STRING   A string representing this instance of hadoop. $USER by default</span><br><span class="line"></span><br><span class="line">pid&#x3D;$HADOOP_PID_DIR&#x2F;hadoop-$HADOOP_IDENT_STRING-$command.pid</span><br><span class="line">...</span><br><span class="line">(stop)</span><br><span class="line"></span><br><span class="line">    if [ -f $pid ]; then      &lt;-- 这里主要找到pid，来进行kill</span><br><span class="line">      TARGET_PID&#x3D;&#96;cat $pid&#96;</span><br><span class="line">      if kill -0 $TARGET_PID &gt; &#x2F;dev&#x2F;null 2&gt;&amp;1; then</span><br><span class="line">        echo stopping $command</span><br><span class="line">        kill $TARGET_PID</span><br><span class="line">        sleep $HADOOP_STOP_TIMEOUT</span><br><span class="line">        if kill -0 $TARGET_PID &gt; &#x2F;dev&#x2F;null 2&gt;&amp;1; then</span><br><span class="line">          echo &quot;$command did not stop gracefully after $HADOOP_STOP_TIMEOUT seconds: killing with kill -9&quot;</span><br><span class="line">          kill -9 $TARGET_PID</span><br><span class="line">        fi</span><br><span class="line">      else</span><br><span class="line">        echo no $command to stop</span><br><span class="line">      fi</span><br><span class="line">      rm -f $pid</span><br><span class="line">    else</span><br><span class="line">      echo no $command to stop</span><br><span class="line">    fi</span><br><span class="line">    ;;</span><br><span class="line"></span><br><span class="line">  (*)</span><br><span class="line">    echo $usage</span><br><span class="line">    exit 1</span><br><span class="line">    ;;</span><br><span class="line"></span><br><span class="line">esac</span><br></pre></td></tr></table></figure>
+<p>根据脚本中的内容可知，<strong>hdfs停止靠的就是/tmp下的pid文件，文件中存的就是pid</strong>，就像下面的一样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 tmp]$ pwd</span><br><span class="line">&#x2F;tmp</span><br><span class="line">[hadoop@hadoop001 tmp]$ ll</span><br><span class="line">-rw-rw-r-- 1 hadoop     hadoop  6 Jul  6 12:54 hadoop-hadoop-datanode.pid</span><br><span class="line">-rw-rw-r-- 1 hadoop     hadoop  6 Jul  6 12:54 hadoop-hadoop-namenode.pid</span><br><span class="line">-rw-rw-r-- 1 hadoop     hadoop  6 Jul  6 12:54 hadoop-hadoop-secondarynamenode.pid</span><br><span class="line">[hadoop@hadoop001 hadoop]$ jps</span><br><span class="line">25330 NameNode</span><br><span class="line">25636 SecondaryNameNode</span><br><span class="line">25463 DataNode</span><br><span class="line">25751 Jps</span><br><span class="line">[root@hadoop001 tmp]# cat hadoop-hadoop-datanode.pid </span><br><span class="line">25463</span><br></pre></td></tr></table></figure>
+
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>将/tmp路径下的datanode.pid文件删除，再次停止hdfs，看是否会出现无法停止的情况呢？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 tmp]$ rm -rf hadoop-hadoop-datanode.pid </span><br><span class="line">[hadoop@hadoop001 tmp]$ ll</span><br><span class="line">-rw-rw-r-- 1 hadoop     hadoop  6 Jul  6 12:54 hadoop-hadoop-namenode.pid</span><br><span class="line">-rw-rw-r-- 1 hadoop     hadoop  6 Jul  6 12:54 hadoop-hadoop-secondarynamenode.pid</span><br><span class="line">[hadoop@hadoop001 hadoop]$ sbin&#x2F;stop-dfs.sh </span><br><span class="line">19&#x2F;07&#x2F;06 14:01:53 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Stopping namenodes on [hadoop001]</span><br><span class="line">hadoop001: stopping namenode</span><br><span class="line">hadoop001: no datanode to stop</span><br><span class="line">Stopping secondary namenodes [hadoop001]</span><br><span class="line">hadoop001: stopping secondarynamenode</span><br><span class="line">19&#x2F;07&#x2F;06 14:02:06 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">[hadoop@hadoop001 hadoop]$ jps</span><br><span class="line">24906 Jps</span><br><span class="line">17391 DataNode</span><br></pre></td></tr></table></figure>
+<p>看来情况就是无法停止DataNode，这个进程依旧存在，原因就是hdfs停止脚本找不到DataNode的pid。<strong>那么，为什么路径/tmp下就没有了pid呢？</strong></p>
+<h3 id="Linux自动删除文件"><a href="#Linux自动删除文件" class="headerlink" title="Linux自动删除文件"></a>Linux自动删除文件</h3><p>上网搜索Linux的tmp路径相关资料，发现Linux系统有个自动清理tmp目录的机制，默认每30天删除一次。相关详细资料请点击这里，<a href="https://www.cnblogs.com/hnrainll/archive/2011/06/08/2074976.html" target="_blank" rel="noopener">关于Linux系统清理/tmp/文件夹的原理</a>。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 先停hdfs，再修改文件，重启</span><br><span class="line">[hadoop@hadoop001 hadoop]$ vim hadoop-env.sh </span><br><span class="line"># The directory where pid files are stored. &#x2F;tmp by default.</span><br><span class="line"># NOTE: this should be set to a directory that can only be written to by </span><br><span class="line">#       the user that will run the hadoop daemons.  Otherwise there is the</span><br><span class="line">#       potential for a symlink attack.</span><br><span class="line"># export HADOOP_PID_DIR&#x3D;$&#123;HADOOP_PID_DIR&#125;</span><br><span class="line">export HADOOP_PID_DIR&#x3D;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;tmp   &lt;---改成你想要存储pid文件的目录</span><br><span class="line">export HADOOP_SECURE_DN_PID_DIR&#x3D;$&#123;HADOOP_PID_DIR&#125;</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 ~]$ ll data&#x2F;tmp&#x2F;</span><br><span class="line">total 12</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 6 Jul  6 14:32 hadoop-hadoop-datanode.pid</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 6 Jul  6 14:32 hadoop-hadoop-namenode.pid</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 6 Jul  6 14:32 hadoop-hadoop-secondarynamenode.pid</span><br></pre></td></tr></table></figure>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" data-id="ckawoucxl0016ygudaej02p0a" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            HDFS架构及其副本放置策略
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">以hostname启动hadoop各个组件</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

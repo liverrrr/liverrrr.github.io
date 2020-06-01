@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Linux基础知识系列之四 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Linux基础知识系列之四" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Linux基础知识系列之四
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/" class="article-date">
+  <time datetime="2019-06-23T02:38:04.000Z" itemprop="datePublished">2019-06-23</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文是Linux基础知识系列的第四篇，主要讲述如何使用vi编辑文本以及快捷键、软链接使用场景、权限的修改、压缩与解压、定时任务和后台执行等。</p>
+<a id="more"></a>
+<h3 id="vi-文本编辑"><a href="#vi-文本编辑" class="headerlink" title="vi(文本编辑)"></a>vi(文本编辑)</h3><p>常规流程是<em>vi xxx 进入命令行模式–&gt; 按i进入编辑 –&gt; 按esc退出编辑，按shift+:进入命令行模式 –&gt; 输入wq保存</em>。但是文件内容一旦过多，这种模式就不太好用了，接下来介绍一些在命令行的快捷方式来进行快速编辑。</p>
+<ol>
+<li>快速删除<br>dd –&gt; 删除当前行<br>dG –&gt; 删除当前行以及以下的所有行<br>ndd –&gt; 删除当前行以及以下的n-1行</li>
+<li>快速跳转<br>gg –&gt; 跳转到第一行的首字母<br>G –&gt; 跳转到最后一行的首字母<br>shift+$ –&gt; 跳转当前行的行未<br>0 –&gt; 跳转当前行的行首</li>
+<li>设置行号或者取消<br>set nu<br>set nonu</li>
+<li>搜索<br>命令行模式输入/xxx，按n向下，N向上 </li>
+<li>快速清空文件内容<br>gg+dG –&gt; 这种方式只适合不太大的文件，保存之后该文件的字节为0<br>cat /dev/null &gt; xxx –&gt; 这种也是使得文件字节为0<br>echo ‘’ &gt; xxx –&gt; 伪清空，文件字节会变为1</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">total 4</span><br><span class="line">-rw-r--r-- 1 root root 46 Jun 23 11:49 tail.log</span><br><span class="line">[root@hadoop001 ~]# echo &#39;&#39; &gt; tail.log </span><br><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">total 4</span><br><span class="line">-rw-r--r-- 1 root root 1 Jun 23 11:50 tail.log   &lt;-- 伪清空</span><br><span class="line"></span><br><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">total 4</span><br><span class="line">-rw-r--r-- 1 root root 46 Jun 23 11:52 tail.log</span><br><span class="line">[root@hadoop001 ~]# cat &#x2F;dev&#x2F;null &gt; tail.log </span><br><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">total 0</span><br><span class="line">-rw-r--r-- 1 root root 0 Jun 23 11:52 tail.log   &lt;-- 真正清空</span><br></pre></td></tr></table></figure>
+
+<h3 id="软链接"><a href="#软链接" class="headerlink" title="软链接"></a>软链接</h3><p>命令为<em>ln -s 源文件路径 软链接所在路径</em>，这个命令在实际上使用频率不太高，但是会有以下两个场景会用到。<br>第一个场景，比如你的代码中使用的是/xxx/ruozedatav1.0路径，但是某天需要升级要使用的路径变成了/xxx/ruozedatav2.0。你不可能会去改代码中的路径，所以这个时候就需要软链接。以下方式创建软链接，就可以避免改代码里的路径。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ln -s &#x2F;root&#x2F;ruozedatav1.0&#x2F; &#x2F;root&#x2F;rz</span><br><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">lrwxrwxrwx 1 root root 20 Jun 23 12:28 rz -&gt; &#x2F;root&#x2F;ruozedatav1.0&#x2F;</span><br><span class="line">[root@hadoop001 ~]# rm -rf rz</span><br><span class="line">[root@hadoop001 ~]# ln -s &#x2F;usr&#x2F;local&#x2F;ruozedatav2.0&#x2F; &#x2F;root&#x2F;rz</span><br><span class="line">[root@hadoop001 ~]# ll</span><br><span class="line">lrwxrwxrwx 1 root root 25 Jun 23 12:29 rz -&gt; &#x2F;usr&#x2F;local&#x2F;ruozedatav2.0&#x2F;</span><br></pre></td></tr></table></figure>
+<p>第二个场景就是，当你代码中使用的路径磁盘快满了，需要更换到另一个容量较大的磁盘路径时。<strong>当然要注意权限与之前一致。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# mv &#x2F;data01&#x2F;ruozedata &#x2F;data02&#x2F;ruozedata</span><br><span class="line">[root@hadoop001 ~]# ln -s &#x2F;data02&#x2F;ruozedata &#x2F;data01&#x2F;ruozedata</span><br><span class="line">[root@hadoop001 data01]# ll</span><br><span class="line">lrwxrwxrwx 1 root root 25 Jun 23 12:29 ruozedata -&gt; &#x2F;data02&#x2F;ruozedata</span><br></pre></td></tr></table></figure>
+
+<h3 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h3><p>主要涉及到两个命令：chmod和chown。chmod是改变文件读写执行权限，chown是改变文件所属用户和用户组。这两个组成文件的权限体系，查看文件权限需要两者结合来看。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">drwxr-xr-x. 2 root root      4096 Jun 12 22:41 Downloads</span><br><span class="line">-rw-r--r--. 1 root root      1012 Jun 15 21:46 error.log</span><br><span class="line">第一位字母: d是文件夹 -是文件 l是连接</span><br><span class="line"></span><br><span class="line">命令实例(只有chown和chmod使用-R)：</span><br><span class="line">chown -R jepson:jepson ruozedata</span><br><span class="line">chmod -R 777  ruozedata  --&gt; 777 代表所有人都有最大权限 读写执</span><br><span class="line"></span><br><span class="line">r 读4</span><br><span class="line">w 写2</span><br><span class="line">x 执行 1 shell脚本</span><br><span class="line">- 0 没有任何权限 </span><br><span class="line"></span><br><span class="line">rwx r-x r-x</span><br><span class="line">第一组 rwx 7 代表文件和文件夹所属的 用户的权限: 读写执</span><br><span class="line">第二组 r-x 5 代表文件和文件夹所属的 用户组的权限: 读执</span><br><span class="line">第三组 r-x 5 代表其他组的所有用户对这个文件或文件夹权限: 读执</span><br></pre></td></tr></table></figure>
+<p><strong>ps：root账号很特别，上面的权限都没用，即使文件权限是000，权限组是其他用户，它照样读写执行</strong></p>
+<h3 id="压缩与解压"><a href="#压缩与解压" class="headerlink" title="压缩与解压"></a>压缩与解压</h3><p>tar.gz和zip压缩格式是我们常见的，下面简单介绍两种的格式的压缩和解压命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf xxx.tag.gz  --&gt; 解压，加上-C可以指定解压到某个路径</span><br><span class="line">tar -cxvf xxx.tag.gz &#x2F;xxx&#x2F;xxx&#x2F;* --&gt; 压缩</span><br><span class="line"></span><br><span class="line">unzip xxx.zip  --&gt; 解压</span><br><span class="line">zip xxx.zip &#x2F;xx&#x2F;xx&#x2F;* --&gt; 压缩</span><br></pre></td></tr></table></figure>
+<p><strong>如果你在解压某个之后发现，该文件的用户和用户组不正常，一定要用chown将其改回来，否则之后会造成不可知错误。</strong> 如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# tar -xzvf jdk-8u45-linux-x64.gz  -C &#x2F;usr&#x2F;java&#x2F;</span><br><span class="line">[root@hadoop001 ~]# cd &#x2F;usr&#x2F;java&#x2F;</span><br><span class="line">[root@hadoop001 java]# ll</span><br><span class="line">total 4</span><br><span class="line">drwxr-xr-x. 8 uucp 143 4096 Apr 11  2015 jdk1.8.0_45     &lt;-- 用户和用户组错误</span><br><span class="line">[root@hadoop001 java]# chown -R root:root  &#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45</span><br><span class="line">[root@hadoop001 java]# ll</span><br><span class="line">total 4</span><br><span class="line">drwxr-xr-x. 8 root root 4096 Apr 11  2015 jdk1.8.0_45</span><br></pre></td></tr></table></figure>
+
+<h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>Linux中crontab经常用来做定时任务，下面就是常用到命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">crontab -e 编辑定时任务</span><br><span class="line">格式 * * * * * 分 小时 日 月 周</span><br><span class="line">* 代表每</span><br><span class="line"></span><br><span class="line">常见需求：</span><br><span class="line">1. 每两分钟执行</span><br><span class="line">*&#x2F;2 * * * *</span><br><span class="line"></span><br><span class="line">2. 每10秒执行</span><br><span class="line">定时任务执行中以下脚本</span><br><span class="line">[root@hadoop001 tmp]# cat date.sh </span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line"></span><br><span class="line">for((i&#x3D;1;i&lt;&#x3D;6;i++))</span><br><span class="line">do</span><br><span class="line">	echo &quot;www.ruozedata.com&quot;</span><br><span class="line">	date</span><br><span class="line">	sleep 10s</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<h3 id="后台执行"><a href="#后台执行" class="headerlink" title="后台执行"></a>后台执行</h3><p>网上有些说只需在命令后面加上&amp;就是后台执行，但并不是，执行 <em>nohup 命令 &amp;</em> 才是。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# .&#x2F;date.sh &amp;</span><br><span class="line">[1] 11179</span><br><span class="line">[root@hadoop001 ~]# Sun Jun 23 14:06:33 CST 2019    &lt;--- 还是前台展示</span><br><span class="line">[root@hadoop001 ~]# nohup .&#x2F;date.sh &amp;</span><br><span class="line">[1] 11136</span><br><span class="line">[root@hadoop001 ~]# nohup: ignoring input and appending output to ‘nohup.out’ &lt;-- 输出放在这里</span><br><span class="line">[root@hadoop001 ~]# cat nohup.out </span><br><span class="line">Sun Jun 23 14:06:03 CST 2019</span><br></pre></td></tr></table></figure>
+<p>因为可能不止一个脚本后台运行，所以不能将输出都放在nohup.out里面，我们更多是将输出重定向。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup .&#x2F;date.sh &gt;&gt; &#x2F;tmp&#x2F;date.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
+<h3 id="其他系统命令"><a href="#其他系统命令" class="headerlink" title="其他系统命令"></a>其他系统命令</h3><pre><code>free -m  查看内存使用情况
+[root@hadoop001 ~]# free -m
+              total        used        free      shared  buff/cache   available
+Mem:          15885         292       13054         163        2537       15107
+Swap:             0           0           0
+记得buff/cache都是算作内存一部分哦
+
+df -h 查看磁盘使用情况
+[root@hadoop001 ~]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda1        40G  4.3G   36G  11% /
+devtmpfs        7.8G     0  7.8G   0% /dev
+tmpfs           7.8G   16K  7.8G   1% /dev/shm
+tmpfs           7.8G  164M  7.6G   3% /run
+tmpfs           7.8G     0  7.8G   0% /sys/fs/cgroup
+tmpfs           1.6G     0  1.6G   0% /run/user/0
+
+top 实时查看整个服务器情况
+面板第一行有个load average: 0.00, 0.00, 0.00，这个三个数代表1min，5min，15min服务器的负载。
+一般来说三个数在10以下都是比较稳定的。</code></pre>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/" data-id="ckawoucxg000rygud5r8p44q7" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/06/24/MySQL%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%BA%A7%E5%88%AB%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            MySQL生产环境级别部署
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Linux基础知识系列之四种常见错误以及校验</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

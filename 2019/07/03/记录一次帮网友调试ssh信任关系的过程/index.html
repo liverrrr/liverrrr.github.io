@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    记录一次帮网友调试ssh信任关系的过程 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-记录一次帮网友调试ssh信任关系的过程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      记录一次帮网友调试ssh信任关系的过程
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" class="article-date">
+  <time datetime="2019-07-03T01:41:32.000Z" itemprop="datePublished">2019-07-03</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文记录了一次帮网友调试ssh信任关系的思考和动手的全过程，分享给大家。</p>
+<a id="more"></a>
+<h3 id="生成公钥和私钥"><a href="#生成公钥和私钥" class="headerlink" title="生成公钥和私钥"></a>生成公钥和私钥</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-keygen</span><br><span class="line">回车</span><br><span class="line">回车</span><br></pre></td></tr></table></figure>
+<p>默认在 ~/.ssh目录生成两个文件：id_rsa–&gt;私钥，id_rsa.pub–&gt;公钥</p>
+<h3 id="导入公钥到认证文件"><a href="#导入公钥到认证文件" class="headerlink" title="导入公钥到认证文件"></a>导入公钥到认证文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat ~&#x2F;.ssh&#x2F;id_rsa.pub &gt;&gt; ~&#x2F;.ssh&#x2F;authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试本机无密码登录"><a href="#测试本机无密码登录" class="headerlink" title="测试本机无密码登录"></a>测试本机无密码登录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ssh master date</span><br><span class="line">回车</span><br><span class="line">需要输入密码--&gt;那么就不对了</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询系统级别日志"><a href="#查询系统级别日志" class="headerlink" title="查询系统级别日志"></a>查询系统级别日志</h3><p><img src="/images/ssh%E6%95%85%E9%9A%9C01.png" alt="ssh故障01"></p>
+<h3 id="查看-root目录权限"><a href="#查看-root目录权限" class="headerlink" title="查看 /root目录权限"></a>查看 /root目录权限</h3><p><img src="/images/ssh%E6%95%85%E9%9A%9C02.png" alt="ssh故障02"></p>
+<h3 id="查询用户1106-和用户组-4001"><a href="#查询用户1106-和用户组-4001" class="headerlink" title="查询用户1106 和用户组 4001"></a>查询用户1106 和用户组 4001</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;passwd | grep 1106</span><br><span class="line">$ cat &#x2F;etc&#x2F;group | grep 4001</span><br></pre></td></tr></table></figure>
+
+<h3 id="赋用户和用户组"><a href="#赋用户和用户组" class="headerlink" title="赋用户和用户组"></a>赋用户和用户组</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chown -R root:root &#x2F;root</span><br></pre></td></tr></table></figure>
+
+<h3 id="重新测试本地无密码登录"><a href="#重新测试本地无密码登录" class="headerlink" title="重新测试本地无密码登录"></a>重新测试本地无密码登录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ssh master date</span><br><span class="line">回车 </span><br><span class="line">直接显示当前日期</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" data-id="ckawoucxp001mygud9cz68q1p" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            配置多台机器SSH相互通信信任
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Hadoop伪分布式部署文档</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

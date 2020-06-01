@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    MySQL基础知识之一 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-MySQL基础知识之一" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      MySQL基础知识之一
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/06/27/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%B8%80/" class="article-date">
+  <time datetime="2019-06-27T03:14:31.000Z" itemprop="datePublished">2019-06-27</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文是MySQL基础知识系列的第一篇，主要讲述DML、DDL、DCL语句使用方式、定义以及注意要点</p>
+<a id="more"></a>
+<h3 id="DDL数据定义语句"><a href="#DDL数据定义语句" class="headerlink" title="DDL数据定义语句"></a>DDL数据定义语句</h3><p>一般都是create,drop,alter关键字，详细介绍create语法及其规范。标准的业务表的建立应该像下面一样，包含自增ID，创建人，创建时间，更新人，更新时间等。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">create table xxx (</span><br><span class="line">id int auto_increment primary key,</span><br><span class="line"></span><br><span class="line">....</span><br><span class="line"></span><br><span class="line">create_user varchar(100),</span><br><span class="line">create_time timestamp default current_timestamp,</span><br><span class="line">update_user varchar(100),</span><br><span class="line">update_time timestamp default current_timestamp on update current_timestamp</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>一般来说建表应该遵守下列几点要求：</p>
+<ol>
+<li>应该存在一个非业务字段的自增主键ID。</li>
+<li>创建人/创建时间/更新人/更新时间，这些字段会在回查数据的时候会起到很重要的作用。</li>
+<li>字段命名统一风格，常用的就是英文单词加上下划线组合，但是不要超过5个单词。</li>
+<li>不要将中文拼音全拼或者缩写作为字段</li>
+<li>不要将中文作为字段</li>
+</ol>
+<h3 id="DML数据操作语句"><a href="#DML数据操作语句" class="headerlink" title="DML数据操作语句"></a>DML数据操作语句</h3><p>其实也就是增删改查，对应来说insert/delete/update/select四个关键词。以下就来分别介绍：</p>
+<ul>
+<li>insert</li>
+</ul>
+<p>语法：insert into xxx(表中的字段) values(对应着字段的值)<br>eg: insert into stu(name,age) values(‘ruoze’,’12’)<br><strong>当然第一个括号可以不用写全表的字段，没有写到的就会按照默认值填充。但是一定要字段和值对应上，否则会报出下面的错误。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Column count doesn&#39;t match value count at row 1</span><br></pre></td></tr></table></figure>
+<p>如果在你执行insert语句的时候，遇到下面错误，证明你所insert表主键冲突了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Duplicate entry &#39;n&#39; for key &#39;xxx&#39;</span><br></pre></td></tr></table></figure>
+<p>那么什么是主键呢？介绍主键的话，不得不先提就是唯一约束，这个表示表里的数据是以其来区分的，通常这个是不会重复的。<strong>主键就是唯一约束并且不能为空，通常表里的一个或多个字段组成唯一约束或者主键。</strong><br>上述错误，你只要将insert语句的xxx字段值改一下就好。</p>
+<ul>
+<li>delete</li>
+</ul>
+<p>语法：delete from xxx where 字段=值<br>eg: delete from stu where id=1<br><strong>删除操作一定要分清场景，判断当前是否要全部删除，如果是要全部删除，不加where条件，否则一定要加上。</strong></p>
+<ul>
+<li>update</li>
+</ul>
+<p>语法：update xxx set 字段=值 where 字段=值<br>eg: update user set username=’ruoze’ where id=9<br><strong>更新操作一定要分清场景，判断当前是否要全部更新，如果是要全部更新，不加where条件，否则一定要加上。</strong></p>
+<ul>
+<li>select</li>
+</ul>
+<p>语法：select 字段1,字段2,字段3… from xxx where ..<br>eg：select username，password from user<br>select语句的where后面可以跟很多组合，常用就是and/or/&gt;/&lt;/!=/=一系列，详见下面例子。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 比较查询</span><br><span class="line">select * from ruozedata.studentinfo where id&gt;&#x3D;1; </span><br><span class="line">select * from ruozedata.studentinfo where name&#x3D;&#39;ruoze1&#39;; </span><br><span class="line">select * from ruozedata.studentinfo where name!&#x3D;&#39;ruoze1&#39;; </span><br><span class="line"></span><br><span class="line"># 且 和--&gt;and   或--&gt;or</span><br><span class="line">select * from ruozedata.studentinfo where age&#x3D;26 or name&#x3D;&#39;ruoze1&#39;;</span><br><span class="line">select * from ruozedata.studentinfo where age&#x3D;26 and name&#x3D;&#39;ruoze1&#39;;</span><br><span class="line">select * from ruozedata.studentinfo where age&#x3D;26 and (name&#x3D;&#39;ruoze1&#39; or  name&#x3D;&#39;jepson&#39;);</span><br><span class="line"></span><br><span class="line"># 模糊查询</span><br><span class="line">select * from ruozedata.studentinfo where name like &#39;%r%&#39;;  --&gt;查找含有r的</span><br><span class="line">select * from ruozedata.studentinfo where name like &#39;ruo%&#39;; --&gt;查找首字母为ruo的</span><br><span class="line">select * from ruozedata.studentinfo where name like &#39;%1&#39;; ----&gt;查找最后为1的</span><br><span class="line">select * from ruozedata.studentinfo where name like &#39;__o%&#39;; --&gt;查找第三个为o的，_为占位符</span><br></pre></td></tr></table></figure>
+
+<h3 id="DCL数据控制语句"><a href="#DCL数据控制语句" class="headerlink" title="DCL数据控制语句"></a>DCL数据控制语句</h3><p>一般来说就是grant关键字，常用的就是三句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 如果该账户未创建，赋予权限的同时创建</span><br><span class="line">grant all privileges on *.* to xxx@&#39;%&#39; identified by &#39;xxx&#39; --&gt;%表示任意电脑可连上mysql</span><br><span class="line">grant all privileges on *.* to xxx@&#39;192.168.%.%&#39; identified by &#39;xxx&#39; --&gt;相同网段可连</span><br><span class="line">grant all privileges on *.* to xxx@&#39;localhost&#39; identified by &#39;xxx&#39; --&gt;本地可连</span><br><span class="line">grant all privileges on *.* to xxx@&#39;127.0.0.1&#39; identified by &#39;xxx&#39; --&gt;本地可连</span><br><span class="line">grant all privileges on *.* to xxx@&#39;hostname&#39; identified by &#39;xxx&#39; --&gt;hostname代表的IP可连</span><br><span class="line"></span><br><span class="line"># 刷新权限</span><br><span class="line">flush privileges   --&gt;执行完上方的一定要执行该语句</span><br><span class="line"></span><br><span class="line"># 查看该用户权限</span><br><span class="line">show grants for xxx@&#39;%&#39;;</span><br></pre></td></tr></table></figure>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/06/27/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%B8%80/" data-id="ckawoucxh000uygud55dm0wsi" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/06/30/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%BA%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            MySQL基础知识之二
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/06/24/MySQL%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%BA%A7%E5%88%AB%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">MySQL生产环境级别部署</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

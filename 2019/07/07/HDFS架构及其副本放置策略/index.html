@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HDFS架构及其副本放置策略 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HDFS架构及其副本放置策略" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HDFS架构及其副本放置策略
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" class="article-date">
+  <time datetime="2019-07-07T13:36:24.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>HDFS中副本是个很重要的容错机制，防止硬件故障带来的文件损失。副本直接复制文件的各个block，HDFS中<em>dfs.replication</em>默认规定副本数为3。这里举个例子，如果你要存储一个260M的文件，在不修改上述的参数情况下，<strong>HDFS实际上有它的3乘3=9个block，实际存储3乘260=780M。</strong></p>
+<a id="more"></a>
+<h3 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h3><p><img src="/images/HDFS%E6%9E%B6%E6%9E%84.png" alt="HDFS架构"></p>
+<h4 id="Block"><a href="#Block" class="headerlink" title="Block"></a>Block</h4><p>HDFS会将文件分成block来存储，这个dfs.blocksize参数默认block大小为128M。</p>
+<h4 id="NameNode-NN"><a href="#NameNode-NN" class="headerlink" title="NameNode(NN)"></a>NameNode(NN)</h4><p>主要是存储整个HDFS的文件系统，包括：<strong>文件名称/文件目录结构/文件属性(权限，创建时间，副本数等)/文件对应的哪些块(副本块)</strong>，这里的文件和副本块的映射关系并不会持久化，而是在集群运行或者启动时，DN定期发送blockreport给NN来更新映射关系。</p>
+<h4 id="DateNode-DN"><a href="#DateNode-DN" class="headerlink" title="DateNode(DN)"></a>DateNode(DN)</h4><p>用来<strong>存储数据块和校验数和以及读写数据</strong>，一般来说DN和NN之间的通信靠这两个参数:</p>
+<ol>
+<li>blockreport<br>dfs.blockreport.intervalMsec=21600000毫秒=6小时</li>
+<li>heartbeat<br>dfs.heartbeat.interval=3秒</li>
+</ol>
+<h3 id="副本"><a href="#副本" class="headerlink" title="副本"></a>副本</h3><p><img src="/images/NN%E5%92%8C%E5%89%AF%E6%9C%AC%E5%85%B3%E7%B3%BB.png" alt="NN和副本关系"><br>HDFS中副本是个很重要的容错机制，防止硬件故障带来的文件损失。副本直接复制文件的各个block，HDFS中<em>dfs.replication</em>默认规定副本数为3。这里举个例子，如果你要存储一个260M的文件，在不修改上述的参数情况下，<strong>HDFS实际上有它的3乘3=9个block，实际存储3乘260=780M。</strong></p>
+<h4 id="副本放置策略"><a href="#副本放置策略" class="headerlink" title="副本放置策略"></a>副本放置策略</h4><p>如果写请求出现在DataNode机器上，第一个副本就会存放在本机器上，否则就会随机存放在任意一个DataNode上，接着第二个副本就会存放在不同于第一个副本所在机架的机架上，第三个副本会随机存放在第二个副本所在机架的任一DataNode上。<br><img src="/images/HDFS%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5.png" alt="HDFS副本放置策略"></p>
+<h4 id="生产上副本数"><a href="#生产上副本数" class="headerlink" title="生产上副本数"></a>生产上副本数</h4><p>一般来说副本数使用3是比较适合的，但是如果<strong>你的使用场景中数据增长过快亦或者存储空间不是太够，建议把副本数调成2</strong>。在实际上，为了存储空间通常会将<em>历史数据</em>移到AWS的S3或者阿里云的oss上，在代码中只需要将hdfs://hadoop001:9000/换成oss://hadoop001:9000/或者s3://hadoop001:9000/。</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" data-id="ckawoucww0000ygudctyf7aoj" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            详解SecondaryNameNode
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">hadoop无法正常停止</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

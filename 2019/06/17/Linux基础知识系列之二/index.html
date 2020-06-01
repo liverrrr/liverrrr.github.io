@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Linux基础知识系列之二 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Linux基础知识系列之二" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Linux基础知识系列之二
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/" class="article-date">
+  <time datetime="2019-06-16T16:00:00.000Z" itemprop="datePublished">2019-06-17</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文是Linux基础系列的第二篇，主要讲解Linux中哪几类环境变量以及如何设置、用户以及用户组的意义以及如何设置。</p>
+<a id="more"></a>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h4 id="alias（别名）"><a href="#alias（别名）" class="headerlink" title="alias（别名）"></a>alias（别名）</h4><p>在<a href="https://liverrrr.fun/archives/base_linux_01" target="_blank" rel="noopener">Linux基础知识系列之一</a>中提到ls -l=ll，这个就是Linux中的别名，使用alias可以查看系统默认的别名。<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# alias</span><br><span class="line">alias cp&#x3D;&#39;cp -i&#39;</span><br><span class="line">alias egrep&#x3D;&#39;egrep --color&#x3D;auto&#39;</span><br><span class="line">alias fgrep&#x3D;&#39;fgrep --color&#x3D;auto&#39;</span><br><span class="line">alias grep&#x3D;&#39;grep --color&#x3D;auto&#39;</span><br><span class="line">alias l.&#x3D;&#39;ls -d .* --color&#x3D;auto&#39;</span><br><span class="line">alias ll&#x3D;&#39;ls -l --color&#x3D;auto&#39;</span><br><span class="line">alias ls&#x3D;&#39;ls --color&#x3D;auto&#39;</span><br><span class="line">alias mv&#x3D;&#39;mv -i&#39;</span><br><span class="line">alias rm&#x3D;&#39;rm -i&#39;</span><br><span class="line">alias which&#x3D;&#39;alias | &#x2F;usr&#x2F;bin&#x2F;which --tty-only --read-alias --show-dot --show-tilde&#39;</span><br></pre></td></tr></table></figure>
+
+<p>使用<strong>alias 别名=命令字符串</strong>就可以在当前session会话中生效，如果你想要一直生效，请在<strong>环境变量文件末</strong>中增添上述命令，有关环境变量的请看下一节。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# alias ul&#x3D;&#39;cd &#x2F;usr&#x2F;local&#39;</span><br><span class="line">[root@hadoop001 ~]# alias</span><br><span class="line">alias cp&#x3D;&#39;cp -i&#39;</span><br><span class="line">alias egrep&#x3D;&#39;egrep --color&#x3D;auto&#39;</span><br><span class="line">alias fgrep&#x3D;&#39;fgrep --color&#x3D;auto&#39;</span><br><span class="line">alias grep&#x3D;&#39;grep --color&#x3D;auto&#39;</span><br><span class="line">alias l.&#x3D;&#39;ls -d .* --color&#x3D;auto&#39;</span><br><span class="line">alias ll&#x3D;&#39;ls -l --color&#x3D;auto&#39;</span><br><span class="line">alias ls&#x3D;&#39;ls --color&#x3D;auto&#39;</span><br><span class="line">alias mv&#x3D;&#39;mv -i&#39;</span><br><span class="line">alias rm&#x3D;&#39;rm -i&#39;</span><br><span class="line">alias ul&#x3D;&#39;cd &#x2F;usr&#x2F;local&#39;   &lt;-- 新增的</span><br><span class="line">alias which&#x3D;&#39;alias | &#x2F;usr&#x2F;bin&#x2F;which --tty-only --read-alias --show-dot --show-tilde&#39;</span><br><span class="line">[root@hadoop001 ~]# ul</span><br><span class="line">[root@hadoop001 local]# pwd</span><br><span class="line">&#x2F;usr&#x2F;local</span><br></pre></td></tr></table></figure>
+<h4 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h4><ol>
+<li>全局环境变量<br>Linux中/etc/profile就是全局变量，无论你用哪个用户登录都可以使用该文件里的所有变量。承接上一节如何在全局环境变量中设置alias，在文件末尾增添以下代码。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#env</span><br><span class="line">alias ul&#x3D;&#39;cd &#x2F;usr&#x2F;local&#39;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>当然光增添代码是不够的，一定要使全局变量生效，使用以下命令均可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">. &#x2F;etc&#x2F;profile</span><br><span class="line">或者</span><br><span class="line">source &#x2F;etc&#x2F;profile</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>个人环境变量<br>只针对个人用户，存放的路径就在 <strong>~/.bash_profile</strong> 中，打开该文件你会发现它其实还涉及到另一个文件 <strong>~/.bashrc</strong> 。所以如果你要设置alias，也是在两个文件末尾添加上述代码。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># .bash_profile</span><br><span class="line"></span><br><span class="line"># Get the aliases and functions</span><br><span class="line">if [ -f ~&#x2F;.bashrc ]; then</span><br><span class="line">        . ~&#x2F;.bashrc</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"># User specific environment and startup programs</span><br><span class="line"></span><br><span class="line">#env</span><br><span class="line">alias rc&#x3D;&#39;cd &#x2F;root&#x2F;xxx&#39;</span><br></pre></td></tr></table></figure>
+使其生效也是上述两种。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">. ~&#x2F;.bash_profile    . ~&#x2F;.bashrc</span><br><span class="line">或者</span><br><span class="line">source ~&#x2F;.bash_profile    source ~&#x2F;.bashrc</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h4 id="rm（删除）"><a href="#rm（删除）" class="headerlink" title="rm（删除）"></a>rm（删除）</h4><p>一般都是使用 rm -rf 文件名，这种方式会强制删除文件或者文件夹，<strong>-f表示强制，-r表示可以文件夹</strong>。经常听到就是 rm -rf /*，也就是删库跑路。当然一般人都不会这样直接运行，但是可能会在shell脚本出现这种错，以下场景就导致这种情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">shell脚本可能会这样</span><br><span class="line">xxxpath&#x3D;xxx&#x2F;xx</span><br><span class="line">...（逻辑部分）</span><br><span class="line">rm -rf $xxxpath&#x2F;*    这里就是个坑</span><br><span class="line"></span><br><span class="line">如果一空值赋予给了xxxpath，那么不就成了rm -rf &#x2F;*</span><br><span class="line">所以在生产上凡是碰见rm -rf强制删除文件夹的，路径一定先判断存在不，不存在 就skip；就存在就rm</span><br></pre></td></tr></table></figure>
+
+<h4 id="history（命令记录）"><a href="#history（命令记录）" class="headerlink" title="history（命令记录）"></a>history（命令记录）</h4><p>history -c 就是清除命令记录，当然个人用户登陆时，~/.bash_history也会记录命令，所以要清除的话，记得也把它给删掉。</p>
+<h4 id="用户-用户组命令集合"><a href="#用户-用户组命令集合" class="headerlink" title="用户/用户组命令集合"></a>用户/用户组命令集合</h4><ol>
+<li>useradd 用户名==&gt;添加用户，它的家目录就在/home/用户名</li>
+<li>id 用户名==&gt;显示用户和用户组信息<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# id dengdi</span><br><span class="line">uid&#x3D;1001(dengdi) gid&#x3D;1001(dengdi) groups&#x3D;1001(dengdi)</span><br><span class="line">用户ID             主组ID           所有组</span><br></pre></td></tr></table></figure></li>
+<li>cat /etc/passwd==&gt;显示所有用户的信息<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dengdi(用户名):x:1001(用户id):1001(主组id)::&#x2F;home&#x2F;dengdi(家目录):&#x2F;bin&#x2F;bash(执行解释器)  </span><br><span class="line">如果&#x2F;bin&#x2F;bash变成&#x2F;bin&#x2F;false或者&#x2F;sbin&#x2F;nologin，这个用户就不能登陆了</span><br></pre></td></tr></table></figure></li>
+<li>userdel 用户名==&gt;删除用户<br>删除用户，会把/etc/passwd记录删除；<br>同时假如该组没有其他用户，则删除该组<br>但是 家目录还在,但是用户和用户组 发生变革<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ll &#x2F;home&#x2F;</span><br><span class="line">total 0</span><br><span class="line">drwx------. 3 centos centos 70 Jun 28  2017 centos</span><br><span class="line">drwx------  2   1001   1001 59 Jun 17 23:48 dengdi</span><br></pre></td></tr></table></figure></li>
+<li>执行userdel然后再useradd<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# userdel dengdi</span><br><span class="line">[root@hadoop001 ~]# useradd dengdi</span><br><span class="line">useradd: warning: the home directory already exists.</span><br><span class="line">Not copying any file from skel directory into it.</span><br><span class="line">Creating mailbox file: File exists</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>来看看系统提示的skel directory是什么，我们ll -a /home/dengdi</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ll -a &#x2F;home&#x2F;dengdi&#x2F;</span><br><span class="line">total 12</span><br><span class="line">drwx------  2 dengdi dengdi  59 Jun 17 23:48 .</span><br><span class="line">drwxr-xr-x. 4 root   root    32 Jun 17 23:48 ..</span><br><span class="line">-rw-r--r--  1 dengdi dengdi  18 Apr 11  2018 .bash_logout</span><br><span class="line">-rw-r--r--  1 dengdi dengdi 193 Apr 11  2018 .bash_profile</span><br><span class="line">-rw-r--r--  1 dengdi dengdi 231 Apr 11  2018 .bashrc</span><br></pre></td></tr></table></figure>
+<p>skel directory就是.bash*所有的隐藏文件，尝试将这些删除然后切换dengdi用户</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# ll -a &#x2F;home&#x2F;dengdi&#x2F;</span><br><span class="line">total 16</span><br><span class="line">drwx------  2 dengdi dengdi  79 Jun 18 00:06 .</span><br><span class="line">drwxr-xr-x. 4 root   root    32 Jun 17 23:48 ..</span><br><span class="line">-rw-------  1 dengdi dengdi   5 Jun 18 00:06 .bash_history</span><br><span class="line">-rw-r--r--  1 dengdi dengdi  18 Apr 11  2018 .bash_logout</span><br><span class="line">-rw-r--r--  1 dengdi dengdi 193 Apr 11  2018 .bash_profile</span><br><span class="line">-rw-r--r--  1 dengdi dengdi 231 Apr 11  2018 .bashrc</span><br><span class="line">[root@hadoop001 ~]# rm -rf &#x2F;home&#x2F;dengdi&#x2F;.*</span><br><span class="line">rm: refusing to remove ‘.’ or ‘..’ directory: skipping ‘&#x2F;home&#x2F;dengdi&#x2F;.’</span><br><span class="line">rm: refusing to remove ‘.’ or ‘..’ directory: skipping ‘&#x2F;home&#x2F;dengdi&#x2F;..’</span><br><span class="line">[root@hadoop001 ~]# ll -a &#x2F;home&#x2F;dengdi&#x2F;</span><br><span class="line">total 0</span><br><span class="line">drwx------  2 dengdi dengdi  6 Jun 18 00:08 .</span><br><span class="line">drwxr-xr-x. 4 root   root   32 Jun 17 23:48 ..</span><br><span class="line">[root@hadoop001 ~]# su - dengdi</span><br><span class="line">Last login: Tue Jun 18 00:07:26 CST 2019 on pts&#x2F;0</span><br><span class="line">-bash-4.2$</span><br></pre></td></tr></table></figure>
+<p>所以skel directory是决定你的[root@hadoop001 ~]还是-bash-4.2$ </p>
+<ol start="6">
+<li>groupadd 用户组==&gt;新增用户组<br><br>usermod -a -G 用户组 dengdi==&gt;添加用户组新成员为dengdi<br><br>usermod -g 用户组 dengdi==&gt;修改xxx为主组<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# groupadd bigdata</span><br><span class="line">[root@hadoop001 ~]# id ruoze</span><br><span class="line">uid&#x3D;501(ruoze) gid&#x3D;501(ruoze) groups&#x3D;501(ruoze)</span><br><span class="line">[root@hadoop001 ~]# usermod -a -G bigdata ruoze</span><br><span class="line">[root@hadoop001 ~]# id ruoze</span><br><span class="line">uid&#x3D;501(ruoze) gid&#x3D;501(ruoze) groups&#x3D;501(ruoze),502(bigdata)</span><br><span class="line">[root@hadoop001 ~]# usermod -g bigdata ruoze</span><br><span class="line">[root@hadoop001 ~]# id ruoze</span><br><span class="line">uid&#x3D;501(ruoze) gid&#x3D;502(bigdata) groups&#x3D;502(bigdata)</span><br><span class="line">这里重新指定主组之后，会丢失原来的主组</span><br></pre></td></tr></table></figure></li>
+<li>重新指定用户家目录<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">usermod -d 路径 用户</span><br><span class="line">或者</span><br><span class="line">vi &#x2F;etc&#x2F;passwd</span><br></pre></td></tr></table></figure></li>
+<li>切换用户<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">su ruoze   切换用户 当前路径不会变，就是切换之前的路径</span><br><span class="line">su - ruoze 切换用户 且切到该用户的家目录，且执行环境变量文件生效</span><br></pre></td></tr></table></figure></li>
+<li>passwd 用户==&gt;设置密码或者重置密码</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/" data-id="ckawoucx8000eygud1sd10nb9" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Linux基础知识系列之三
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Linux基础知识系列一</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>
