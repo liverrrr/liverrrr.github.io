@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    hadoop-2.6.0-cdh5.7.0源码编译支持压缩 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-hadoop-2.6.0-cdh5.7.0源码编译支持压缩" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      hadoop-2.6.0-cdh5.7.0源码编译支持压缩
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" class="article-date">
+  <time datetime="2019-07-09T08:54:50.000Z" itemprop="datePublished">2019-07-09</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>直接使用的hadoop-2.6.0-cdh5.7.0.tar.gz包部署的hadoop集群不支持文件压缩，生产上是不可接受的，故需要将hadoop源码下载重新编译支持压缩</p>
+<a id="more"></a>
+<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>直接使用的hadoop-2.6.0-cdh5.7.0.tar.gz包部署的hadoop集群不支持文件压缩，生产上是不可接受的，故需要将hadoop源码下载重新编译支持压缩</p>
+<h3 id="硬件环境"><a href="#硬件环境" class="headerlink" title="硬件环境"></a>硬件环境</h3><p>阿里云按量计费香港云主机ESC</p>
+<h3 id="软件环境"><a href="#软件环境" class="headerlink" title="软件环境"></a>软件环境</h3><table>
+<thead>
+<tr>
+<th>组件名称</th>
+<th>版本</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>hadoop</td>
+<td>hadoop-2.6.0-cdh5.7.0-src.tar.gz</td>
+<td><a href="http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0-src.tar.gz" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0-src.tar.gz</a></td>
+</tr>
+<tr>
+<td>jdk</td>
+<td>jdk-7u80-linux-x64.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1xSCQ8rjABVI-zDFQS5nCPA" target="_blank" rel="noopener">https://pan.baidu.com/s/1xSCQ8rjABVI-zDFQS5nCPA</a> 提取码：lfze</td>
+</tr>
+<tr>
+<td>maven</td>
+<td>apache-maven-3.3.9-bin.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1ddkdkLW7r7ahFZmgACGkVw" target="_blank" rel="noopener">https://pan.baidu.com/s/1ddkdkLW7r7ahFZmgACGkVw</a> 提取码：fdfz</td>
+</tr>
+<tr>
+<td>protobuf</td>
+<td>protobuf-2.5.0.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1RSNZGd_ThwknMB3vDkEfhQ" target="_blank" rel="noopener">https://pan.baidu.com/s/1RSNZGd_ThwknMB3vDkEfhQ</a> 提取码：hvc2</td>
+</tr>
+</tbody></table>
+<p><strong>注意：编译的JDK版本必须是1.7，1.8的JDK会导致编译失败</strong></p>
+<h3 id="编译hadoop"><a href="#编译hadoop" class="headerlink" title="编译hadoop"></a>编译hadoop</h3><h4 id="安装必要的依赖库"><a href="#安装必要的依赖库" class="headerlink" title="安装必要的依赖库"></a>安装必要的依赖库</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# yum install -y svn ncurses-devel</span><br><span class="line">[root@hadoop001 ~]# yum install -y gcc gcc-c++ make cmake</span><br><span class="line">[root@hadoop001 ~]# yum install -y openssl openssl-devel svn ncurses-devel zlib-devel libtool</span><br><span class="line">[root@hadoop001 ~]# yum install -y snappy snappy-devel bzip2 bzip2-devel lzo lzo-devel lzop autoconf automake cmake</span><br></pre></td></tr></table></figure>
+<h4 id="添加用户以及上传软件"><a href="#添加用户以及上传软件" class="headerlink" title="添加用户以及上传软件"></a>添加用户以及上传软件</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# yum install -y lrzsz</span><br><span class="line">[root@hadoop001 ~]# useradd hadoop</span><br><span class="line">[root@hadoop001 ~]# su - hadoop</span><br><span class="line">[hadoop@hadoop001 ~]$ mkdir app soft source lib data maven_repo shell mysql</span><br><span class="line">[hadoop@hadoop001 ~]$ cd soft&#x2F;</span><br><span class="line">[hadoop@hadoop001 soft]$ rz</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 soft]$ ll</span><br><span class="line">total 202192</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop   8491533 Apr  7 11:25 apache-maven-3.3.9-bin.tar.gz</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop  42610549 Apr  6 16:55 hadoop-2.6.0-cdh5.7.0-src.tar.gz</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop 153530841 Apr  7 11:12 jdk-7u80-linux-x64.tar.gz</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop   2401901 Apr  7 11:31 protobuf-2.5.0.tar.gz</span><br></pre></td></tr></table></figure>
+<h4 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h4><ul>
+<li>解压安装包，安装目录必须是/usr/java,安装后记得修改拥有者为root<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 soft]$ exit</span><br><span class="line">[root@hadoop001 ~]# mkdir &#x2F;usr&#x2F;java</span><br><span class="line">[root@hadoop001 ~]# tar -zxvf &#x2F;home&#x2F;hadoop&#x2F;soft&#x2F;jdk-7u80-linux-x64.tar.gz -C &#x2F;usr&#x2F;java</span><br><span class="line">[root@hadoop001 ~]# cd &#x2F;usr&#x2F;java&#x2F;</span><br><span class="line">[root@hadoop001 java]# chown -R  root:root jdk1.7.0_80</span><br></pre></td></tr></table></figure></li>
+<li>添加环境变量<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 jdk1.7.0_80]# vim &#x2F;etc&#x2F;profile </span><br><span class="line">#添加如下两行环境变量</span><br><span class="line">export JAVA_HOME&#x3D;&#x2F;usr&#x2F;java&#x2F;jdk1.7.0_80</span><br><span class="line">export PATH&#x3D;$JAVA_HOME&#x2F;bin:$PATH</span><br><span class="line">[root@hadoop001 jdk1.7.0_80]# source &#x2F;etc&#x2F;profile</span><br><span class="line">#测试java是否安装成功</span><br><span class="line">[root@hadoop001 jdk1.7.0_80]# java -version</span><br><span class="line">java version &quot;1.7.0_80&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.7.0_80-b15)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 24.80-b11, mixed mode)</span><br></pre></td></tr></table></figure>
+<h4 id="安装maven"><a href="#安装maven" class="headerlink" title="安装maven"></a>安装maven</h4></li>
+<li>解压<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# su - hadoop</span><br><span class="line">[hadoop@hadoop001 ~]$ tar -zxvf ~&#x2F;soft&#x2F;apache-maven-3.3.9-bin.tar.gz -C ~&#x2F;app&#x2F;</span><br></pre></td></tr></table></figure></li>
+<li>添加环境变量<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#修改haoop用户的环境变量</span><br><span class="line">[hadoop@hadoop001 ~]$ vim ~&#x2F;.bash_profile</span><br><span class="line">#添加或修改如下内容，注意MAVEN_OPTS设置了maven运行的内存，防止内存太小导致编译失败</span><br><span class="line">export MAVEN_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;apache-maven-3.3.9</span><br><span class="line">export MAVEN_OPTS&#x3D;&quot;-Xms1024m -Xmx1024m&quot;</span><br><span class="line">export PATH&#x3D;$MAVEN_HOME&#x2F;bin:$PATH</span><br><span class="line">[hadoop@hadoop001 ~]$ source ~&#x2F;.bash_profile</span><br><span class="line">[hadoop@hadoop001 ~]$ which mvn</span><br><span class="line">~&#x2F;app&#x2F;apache-maven-3.3.9&#x2F;bin&#x2F;mvn</span><br></pre></td></tr></table></figure></li>
+<li>配置maven<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ vim ~&#x2F;app&#x2F;apache-maven-3.3.9&#x2F;conf&#x2F;settings.xml</span><br><span class="line">#配置maven的本地仓库位置</span><br><span class="line">&lt;localRepository&gt;&#x2F;home&#x2F;hadoop&#x2F;maven_repo&#x2F;repo&lt;&#x2F;localRepository&gt;</span><br><span class="line">#添加阿里云中央仓库地址，注意一定要写在&lt;mirrors&gt;&lt;&#x2F;mirrors&gt;之间</span><br><span class="line">&lt;mirror&gt;</span><br><span class="line">     &lt;id&gt;nexus-aliyun&lt;&#x2F;id&gt;</span><br><span class="line">     &lt;mirrorOf&gt;central&lt;&#x2F;mirrorOf&gt;</span><br><span class="line">     &lt;name&gt;Nexus aliyun&lt;&#x2F;name&gt;</span><br><span class="line">     &lt;url&gt;http:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;groups&#x2F;public&lt;&#x2F;url&gt;</span><br><span class="line">&lt;&#x2F;mirror&gt;</span><br></pre></td></tr></table></figure></li>
+<li>（可选）添加jars到本地仓库，网络慢可能导致mvn第一次编译时下载需要超长的时间甚至编译失败<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#jar包链接</span><br><span class="line">链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;12HHeybC-NY9-LiMKQuMf9w </span><br><span class="line">提取码：wu2u </span><br><span class="line">复制这段内容后打开百度网盘手机App，操作更方便哦</span><br><span class="line">#下载后 rz上传解压，注意目录层次</span><br><span class="line">[hadoop@hadoop001 maven_repo]$ rz</span><br><span class="line">[hadoop@hadoop001 maven_repo]$ tar -zxvf repo.tar.gz</span><br></pre></td></tr></table></figure>
+<h4 id="安装protobuf"><a href="#安装protobuf" class="headerlink" title="安装protobuf"></a>安装protobuf</h4></li>
+<li>解压<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 ~]$ tar -zxvf ~&#x2F;soft&#x2F;protobuf-2.5.0.tar.gz -C ~&#x2F;app&#x2F;</span><br></pre></td></tr></table></figure></li>
+<li>编译软件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ cd ~&#x2F;app&#x2F;protobuf-2.5.0&#x2F;</span><br><span class="line">#  --prefix&#x3D; 是用来待会编译好的包放在为路径</span><br><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ .&#x2F;configure  --prefix&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;protobuf-2.5.0</span><br><span class="line">#编译以及安装</span><br><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ make</span><br><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ make install</span><br></pre></td></tr></table></figure></li>
+<li>添加环境变量<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ vim ~&#x2F;.bash_profile</span><br><span class="line">#追加如下两行内容，未编译前是没有bin目录的</span><br><span class="line">export PROTOBUF_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;protobuf-2.5.0</span><br><span class="line">export PATH&#x3D;$PROTOBUF_HOME&#x2F;bin:$PATH</span><br><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ source ~&#x2F;.bash_profile </span><br><span class="line">#测试是否生效，若出现libprotoc 2.5.0则为生效</span><br><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ protoc --version</span><br><span class="line">libprotoc 2.5.0</span><br></pre></td></tr></table></figure>
+<h4 id="编译hadoop-1"><a href="#编译hadoop-1" class="headerlink" title="编译hadoop"></a>编译hadoop</h4></li>
+<li>解压<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 protobuf-2.5.0]$ tar -zxvf ~&#x2F;soft&#x2F;hadoop-2.6.0-cdh5.7.0-src.tar.gz -C ~&#x2F;source&#x2F;</span><br></pre></td></tr></table></figure></li>
+<li>编译hadoop使其支持压缩：mvn clean package -Pdist,native -DskipTests -Dtar<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#进入hadoop的源码目录</span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ cd ~&#x2F;source&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;</span><br><span class="line">#进行编译，第一次编译会下载很多依赖的jar包，快慢由网速决定，需耐心等待，本人亲测耗时</span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ mvn clean package -Pdist,native -DskipTests -Dtar</span><br></pre></td></tr></table></figure></li>
+<li>若报异常，主要信息如下（无异常跳过）：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[FATAL] Non-resolvable parent POM for org.apache.hadoop:hadoop-main:2.6.0-cdh5.7.0: Could not transfer artifact com.cloudera.cdh:cdh-root:pom:5.7.0 from&#x2F;to cdh.repo (https:&#x2F;&#x2F;repository.cloudera.com&#x2F;artifactory&#x2F;cloudera-repos): Remote host closed connectio</span><br><span class="line">#分析：是https:&#x2F;&#x2F;repository.cloudera.com&#x2F;artifactory&#x2F;cloudera-repos&#x2F;com&#x2F;cloudera&#x2F;cdh&#x2F;cdh-root&#x2F;5.7.0&#x2F;cdh-root-5.7.0.pom文件下载不了，但是虚拟机确实是ping通远程的仓库，很是费解为什么。</span><br><span class="line">#解决方案：前往本地仓库到目标文件目录，然后 通过wget 文件，来成功获取该文件，重新执行编译命令，或者执行4.5的可选步骤，将需要的jar直接放到本地仓库</span><br></pre></td></tr></table></figure></li>
+<li>查看编译后的包：hadoop-2.6.0-cdh5.7.0.tar.gz<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">#有 BUILD SUCCESS 信息则表示编译成功</span><br><span class="line">[INFO] Apache Hadoop Scheduler Load Simulator ............. SUCCESS [ 13.592 s]</span><br><span class="line">[INFO] Apache Hadoop Tools Dist ........................... SUCCESS [ 12.042 s]</span><br><span class="line">[INFO] Apache Hadoop Tools ................................ SUCCESS [  0.094 s]</span><br><span class="line">[INFO] Apache Hadoop Distribution ......................... SUCCESS [01:49 min]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time: 37:39 min</span><br><span class="line">[INFO] Finished at: 2019-04-07T16:48:42+08:00</span><br><span class="line">[INFO] Final Memory: 200M&#x2F;989M</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ </span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ </span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ </span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ </span><br><span class="line">[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ ll &#x2F;home&#x2F;hadoop&#x2F;source&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;hadoop-dist&#x2F;target&#x2F;</span><br><span class="line">total 564036</span><br><span class="line">drwxrwxr-x. 2 hadoop hadoop      4096 Apr  7 16:46 antrun</span><br><span class="line">drwxrwxr-x. 3 hadoop hadoop      4096 Apr  7 16:46 classes</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop      1998 Apr  7 16:46 dist-layout-stitching.sh</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop       690 Apr  7 16:47 dist-tar-stitching.sh</span><br><span class="line">drwxrwxr-x. 9 hadoop hadoop      4096 Apr  7 16:47 hadoop-2.6.0-cdh5.7.0</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop 191880143 Apr  7 16:47 hadoop-2.6.0-cdh5.7.0.tar.gz</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop      7314 Apr  7 16:47 hadoop-dist-2.6.0-cdh5.7.0.jar</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop 385618309 Apr  7 16:48 hadoop-dist-2.6.0-cdh5.7.0-javadoc.jar</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop      4855 Apr  7 16:47 hadoop-dist-2.6.0-cdh5.7.0-sources.jar</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop      4855 Apr  7 16:47 hadoop-dist-2.6.0-cdh5.7.0-test-sources.jar</span><br><span class="line">drwxrwxr-x. 2 hadoop hadoop      4096 Apr  7 16:47 javadoc-bundle-options</span><br><span class="line">drwxrwxr-x. 2 hadoop hadoop      4096 Apr  7 16:47 maven-archiver</span><br><span class="line">drwxrwxr-x. 3 hadoop hadoop      4096 Apr  7 16:46 maven-shared-archive-resources</span><br><span class="line">drwxrwxr-x. 3 hadoop hadoop      4096 Apr  7 16:46 test-classes</span><br><span class="line">drwxrwxr-x. 2 hadoop hadoop      4096 Apr  7 16:46 test-dir</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" data-id="ckb7q0efo001plcudfp6wgoxx" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Yarn工作流程
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">HDFS常用命令</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

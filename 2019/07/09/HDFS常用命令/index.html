@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HDFS常用命令 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HDFS常用命令" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HDFS常用命令
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2019-07-09T08:45:57.000Z" itemprop="datePublished">2019-07-09</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>本文详细介绍常用的Hadoop命令</p>
+<a id="more"></a>
+<h3 id="Hadoop命令"><a href="#Hadoop命令" class="headerlink" title="Hadoop命令"></a>Hadoop命令</h3><h4 id="hadoop-version"><a href="#hadoop-version" class="headerlink" title="hadoop version"></a>hadoop version</h4><p>一般这个就是用来看hadoop版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 ~]$ hadoop version</span><br><span class="line">Hadoop 2.6.0-cdh5.7.0</span><br><span class="line">Subversion Unknown -r Unknown</span><br><span class="line">Compiled by hadoop on 2019-07-08T13:33Z</span><br><span class="line">Compiled with protoc 2.5.0</span><br><span class="line">From source with checksum b2eabfa328e763c88cb14168f9b372</span><br><span class="line">This command was run using &#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;hadoop-common-2.6.0-cdh5.7.0.jar</span><br></pre></td></tr></table></figure>
+
+<h4 id="hadoop-jar"><a href="#hadoop-jar" class="headerlink" title="hadoop jar"></a>hadoop jar</h4><p>用来于运行jar包，具体用法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop jar .&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;hadoop-mapreduce-examples-2.6.0-cdh5.7.0.jar pi 4 10</span><br></pre></td></tr></table></figure>
+<h4 id="hadoop-checknative"><a href="#hadoop-checknative" class="headerlink" title="hadoop checknative"></a>hadoop checknative</h4><p>查看hadoop对于压缩的支持，cloudera提供的cdh默认不支持压缩，得进行源代码编译</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop checknative</span><br><span class="line">19&#x2F;07&#x2F;09 22:12:26 INFO bzip2.Bzip2Factory: Successfully loaded &amp; initialized native-bzip2 library system-native</span><br><span class="line">19&#x2F;07&#x2F;09 22:12:26 INFO zlib.ZlibFactory: Successfully loaded &amp; initialized native-zlib library</span><br><span class="line">Native library checking:</span><br><span class="line">hadoop:  true &#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;lib&#x2F;native&#x2F;libhadoop.so.1.0.0</span><br><span class="line">zlib:    true &#x2F;lib64&#x2F;libz.so.1</span><br><span class="line">snappy:  true &#x2F;lib64&#x2F;libsnappy.so.1</span><br><span class="line">lz4:     true revision:99</span><br><span class="line">bzip2:   true &#x2F;lib64&#x2F;libbz2.so.1</span><br><span class="line">openssl: true &#x2F;lib64&#x2F;libcrypto.so</span><br></pre></td></tr></table></figure>
+<h4 id="hadoop-classpath"><a href="#hadoop-classpath" class="headerlink" title="hadoop classpath"></a>hadoop classpath</h4><p>查看hadoop运行需要哪些jar包，如果你需要将三方包让hadoop支持，只需将其放入下列路径：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop classpath</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;etc&#x2F;hadoop:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;lib&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;hdfs:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;lib&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;*:&#x2F;</span><br><span class="line">home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;lib&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;lib&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hadoop-2.6.0-cdh5.7.0&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;*:</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop&#x2F;contrib&#x2F;capacity-scheduler&#x2F;*.jar</span><br></pre></td></tr></table></figure>
+
+<h3 id="hdfs"><a href="#hdfs" class="headerlink" title="hdfs"></a>hdfs</h3><h4 id="hdfs-dfs"><a href="#hdfs-dfs" class="headerlink" title="hdfs dfs"></a>hdfs dfs</h4><p>用来对hdfs文件系统的操作命令，下列在工作中常用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -ls &#x2F;路径</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -cat 文件路径</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -chmod -R 文件</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -chown -R 文件</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -put &lt;localsrc&gt; ... &lt;dst&gt;</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -get &lt;src&gt; ... &lt;localdst&gt;</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -mkdir [-p] &lt;path&gt; ...</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -rm [-f] [-r|-R] [-skipTrash] &lt;src&gt; ...</span><br></pre></td></tr></table></figure>
+<h4 id="hdfs-fsck"><a href="#hdfs-fsck" class="headerlink" title="hdfs fsck"></a>hdfs fsck</h4><p>检查hdfs是否可用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># 以根目录来检查</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs fsck &#x2F;</span><br><span class="line">Connecting to namenode via http:&#x2F;&#x2F;hadoop001:50070</span><br><span class="line">FSCK started by hadoop (auth:SIMPLE) from &#x2F;192.168.0.3 for path &#x2F; at Tue Jul 09 22:24:30 CST 2019</span><br><span class="line">Status: HEALTHY</span><br><span class="line"> Total size:	0 B</span><br><span class="line"> Total dirs:	1</span><br><span class="line"> Total files:	0</span><br><span class="line"> Total symlinks:		0</span><br><span class="line"> Total blocks (validated):	0</span><br><span class="line"> Minimally replicated blocks:	0</span><br><span class="line"> Over-replicated blocks:	0</span><br><span class="line"> Under-replicated blocks:	0</span><br><span class="line"> Mis-replicated blocks:		0</span><br><span class="line"> Default replication factor:	1</span><br><span class="line"> Average block replication:	0.0</span><br><span class="line"> Corrupt blocks:		0</span><br><span class="line"> Missing replicas:		0</span><br><span class="line"> Number of data-nodes:		1</span><br><span class="line"> Number of racks:		1</span><br><span class="line">FSCK ended at Tue Jul 09 22:24:30 CST 2019 in 1 milliseconds</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">The filesystem under path &#39;&#x2F;&#39; is HEALTHY</span><br><span class="line"></span><br><span class="line"># 删除损坏的文件，不建议使用</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs fsck -delete</span><br><span class="line"></span><br><span class="line"># 打印出损坏的块以及所属文件</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs fsck -list-corruptfileblocks</span><br></pre></td></tr></table></figure>
+<h4 id="hdfs-debug"><a href="#hdfs-debug" class="headerlink" title="hdfs debug"></a>hdfs debug</h4><p>详情用法请看，<a href="https://liverrrr.github.io/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" target="_blank" rel="noopener">生产HDFS Block损坏恢复最佳实践</a>。</p>
+<h4 id="hdfs-haadmin"><a href="#hdfs-haadmin" class="headerlink" title="hdfs haadmin"></a>hdfs haadmin</h4><p>查看NN是否是active以及将NN状态切换</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 查看NN状态，注意后面跟的是nameserviceID</span><br><span class="line">[hadoop@ruozedata001 ~]$ hdfs haadmin -getServiceState nn1</span><br><span class="line">active</span><br><span class="line">[hadoop@ruozedata001 ~]$ hdfs haadmin -getServiceState nn2</span><br><span class="line">standby</span><br><span class="line"></span><br><span class="line"># 切换NN状态，注意后面跟的是nameserviceID</span><br><span class="line">[hadoop@ruozedata001 ~]$ hdfs haadmin -failover nn1 nn2</span><br><span class="line">Failover to NameNode at ruozedata002&#x2F;172.24.10.222:8020 successful</span><br><span class="line">[hadoop@ruozedata001 ~]$ hdfs haadmin -getServiceState nn2</span><br><span class="line">active</span><br><span class="line">[hadoop@ruozedata001 ~]$ hdfs haadmin -getServiceState nn1</span><br><span class="line">standby</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" data-id="ckb7q0ef10002lcuddxts6ktt" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            hadoop-2.6.0-cdh5.7.0源码编译支持压缩
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/08/HDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">HDFS读写流程</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

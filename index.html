@@ -66,6 +66,408 @@
       <h1 class="page-type-title"></h1>
       
         
+          <article id="post-Yarn调度器详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/10/Yarn%E8%B0%83%E5%BA%A6%E5%99%A8%E8%AF%A6%E8%A7%A3/">Yarn调度器详解</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/10/Yarn%E8%B0%83%E5%BA%A6%E5%99%A8%E8%AF%A6%E8%A7%A3/" class="article-date">
+  <time datetime="2019-07-10T09:20:18.000Z" itemprop="datePublished">2019-07-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：在yarn中，负责给应<br>用分配资源的就是scheduler。其实调度本身就是一个难题，很难找到一个完美的策略可以解决所有的应用<br>场景。为此，yarn提供了多种调度器和可配置的策略供我们选择。常见的有：FIFO Scheduler，Capacity Scheduler，FairScheduler。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/10/Yarn%E8%B0%83%E5%BA%A6%E5%99%A8%E8%AF%A6%E8%A7%A3/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/10/Yarn%E8%B0%83%E5%BA%A6%E5%99%A8%E8%AF%A6%E8%A7%A3/" data-id="ckb7q0efm001klcuddxztf3cs" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Yarn和MapReduce的【内存】优化配置详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/">Yarn和MapReduce的【内存】优化配置详解</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-date">
+  <time datetime="2019-07-10T09:04:09.000Z" itemprop="datePublished">2019-07-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：在Hadoop2.x中，YARN负责管理MapReduce中的资源(内存，CPU等)并且将其打包成Container。<br>使之专注于其擅长的数据处理任务，将无需考虑资源调度。<br>YARN会管理集群中所有机器的可用计算资源。基于这些资源YARN会调度应用(比如MapReduce)发来的资源请求，然后YARN会通过分配Container来给每个应用提供处理能力，Container是YARN中处理能力的基本单元，是对内存，CPU等的封装。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" data-id="ckb7q0efk0019lcud03q08srb" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-YARN的Memory和CPU调优配置详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/">YARN的Memory和CPU调优配置详解</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-date">
+  <time datetime="2019-07-10T09:04:09.000Z" itemprop="datePublished">2019-07-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：Hadoop YARN同时支持内存和CPU两种资源的调度，本文介绍如何配置YARN对内存和CPU的使用。<br>YARN作为一个资源调度器，应该考虑到集群里面每一台机子的计算资源，然后根据application申请的资源进行分配Container。Container是YARN里面资源分配的基本单位，具有一定的内存以及CPU资源。<br>在YARN集群中，平衡内存、CPU、磁盘的资源的很重要的，根据经验，每两个container使用一块磁盘以及一个CPU核的时候可以使集群的资源得到一个比较好的利用。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" data-id="ckb7q0efk001clcud0ukxbmy0" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Yarn工作流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/">Yarn工作流程</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2019-07-09T09:04:09.000Z" itemprop="datePublished">2019-07-09</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p><img src="/images/yarn%E6%B5%81%E7%A8%8B.png" alt="yarn流程"></p>
+<ol>
+<li>客户端向yarn提交作业，yarn会启动ApplicationsManager，让它来管理作业</li>
+<li>RM会为作业分配对应的NM并且通信，开启作业的ApplicationMaster</li>
+<li>ApplicationMaster会向ApplicationsManager注册，这样用户可以在页面上实时查看任务进度等信息</li>
+<li>ApplicationMaster轮询的通过RPC向ResourceScheduler申请资源</li>
+<li>在ApplicationMaster领取到资源后，会与对应的NM通信要求开启Task</li>
+<li>NM为任务设置好运行环境后，将任务的启动命令写到一个脚本中，并通过该脚本启动并运行任务</li>
+<li>各个Task通过RPC向ApplicationMaster汇报，以让application master随时掌握各个任务的运行状态，从而在任务失败时，重启启动任务</li>
+<li>作业结束后，ApplicationMaster向ApplicationsManager注销并关闭自己</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" data-id="ckb7q0efm001hlcud76u14q4v" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-hadoop-2.6.0-cdh5.7.0源码编译支持压缩" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/">hadoop-2.6.0-cdh5.7.0源码编译支持压缩</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" class="article-date">
+  <time datetime="2019-07-09T08:54:50.000Z" itemprop="datePublished">2019-07-09</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>直接使用的hadoop-2.6.0-cdh5.7.0.tar.gz包部署的hadoop集群不支持文件压缩，生产上是不可接受的，故需要将hadoop源码下载重新编译支持压缩</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" data-id="ckb7q0efo001plcudfp6wgoxx" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-HDFS常用命令" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">HDFS常用命令</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2019-07-09T08:45:57.000Z" itemprop="datePublished">2019-07-09</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>本文详细介绍常用的Hadoop命令</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/09/HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" data-id="ckb7q0ef10002lcuddxts6ktt" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
           <article id="post-HDFS读写流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
@@ -126,7 +528,7 @@
                                                                         
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/08/HDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckawoucx50007yguda76yf7w5" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/08/HDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckb7q0ef70009lcud8iqugr1b" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -192,7 +594,7 @@
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" data-id="ckawoucxo001hygud14kg2249" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" data-id="ckb7q0efr0021lcudbhiq5gy6" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -266,7 +668,7 @@
                                                                         
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/" data-id="ckawoucxq001pygudemqn9nvy" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/" data-id="ckb7q0efs0027lcud6k6wa8dz" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -332,407 +734,11 @@
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" data-id="ckawoucww0000ygudctyf7aoj" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" data-id="ckb7q0ef50006lcud52rwg6dr" class="article-share-link">
                                             分享
                                         </a>
                                         
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-hadoop无法正常停止" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/">hadoop无法正常停止</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" class="article-date">
-  <time datetime="2019-07-06T13:32:35.000Z" itemprop="datePublished">2019-07-06</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>在某次启动hdfs之后，在一个月之后，需要将其重启，但却发现无法停止，无奈只有kill掉进程，再次启动。我并不打算将其问题放弃，想看看到底是什么原因导致这个情况。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" data-id="ckawoucxl0016ygudaej02p0a" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-以hostname启动hadoop各个组件" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/">以hostname启动hadoop各个组件</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/" class="article-date">
-  <time datetime="2019-07-04T15:22:39.000Z" itemprop="datePublished">2019-07-04</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>本文详细介绍如何以hostname启动hadoop各个组件，以及其中的坑</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/" data-id="ckawoucxn001eygud408054fr" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-jps详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/">jps详解</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/" class="article-date">
-  <time datetime="2019-07-03T16:15:08.000Z" itemprop="datePublished">2019-07-04</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>jps(Java Virtual Machine Process Status Tool)是JDK提供的一个显示当前所有java进程pid的命令，简单实用，非常适合在linux/unix平台上简单察看当前java进程的一些简单情况。通常在Liunx执行jps，得到就是pid和进程名。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/04/jps%E8%AF%A6%E8%A7%A3/" data-id="ckawoucxm0019ygudazu7fwvc" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-配置多台机器SSH相互通信信任" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/">配置多台机器SSH相互通信信任</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" class="article-date">
-  <time datetime="2019-07-03T02:08:34.000Z" itemprop="datePublished">2019-07-03</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>本文详细介绍如何配置多台机器SSH互通，以及可能遇到的坑。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" data-id="ckawoucxr001sygudfcuu7rz7" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-记录一次帮网友调试ssh信任关系的过程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/">记录一次帮网友调试ssh信任关系的过程</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" class="article-date">
-  <time datetime="2019-07-03T01:41:32.000Z" itemprop="datePublished">2019-07-03</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>本文记录了一次帮网友调试ssh信任关系的思考和动手的全过程，分享给大家。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" data-id="ckawoucxp001mygud9cz68q1p" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-Hadoop伪分布式部署文档" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">Hadoop伪分布式部署文档</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2019-07-01T01:34:02.000Z" itemprop="datePublished">2019-07-01</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>本文详细介绍了Hadoop单节点如何安装，验证是否安装成功，以及安装过程中会遇到的坑，此文所使用的Hadoop版本为2.6.0-cdh5.7.0，强烈建议小伙伴们使用cdh版本。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" data-id="ckawoucx40006ygud0js85c2j" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
 
                                     </footer>
 
@@ -749,7 +755,7 @@
   
     
       <nav class="page-nav">
-        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
+        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
       </nav>
     
   </section>

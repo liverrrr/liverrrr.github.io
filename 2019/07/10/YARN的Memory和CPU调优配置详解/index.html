@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    YARN的Memory和CPU调优配置详解 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-YARN的Memory和CPU调优配置详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      YARN的Memory和CPU调优配置详解
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-date">
+  <time datetime="2019-07-10T09:04:09.000Z" itemprop="datePublished">2019-07-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：Hadoop YARN同时支持内存和CPU两种资源的调度，本文介绍如何配置YARN对内存和CPU的使用。<br>YARN作为一个资源调度器，应该考虑到集群里面每一台机子的计算资源，然后根据application申请的资源进行分配Container。Container是YARN里面资源分配的基本单位，具有一定的内存以及CPU资源。<br>在YARN集群中，平衡内存、CPU、磁盘的资源的很重要的，根据经验，每两个container使用一块磁盘以及一个CPU核的时候可以使集群的资源得到一个比较好的利用。</p>
+<a id="more"></a>
+<h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><p>Hadoop YARN同时支持内存和CPU两种资源的调度，本文介绍如何配置YARN对内存和CPU的使用。<br>YARN作为一个资源调度器，应该考虑到集群里面每一台机子的计算资源，然后根据application申请的资源进行分配Container。Container是YARN里面资源分配的基本单位，具有一定的内存以及CPU资源。<br>在YARN集群中，平衡内存、CPU、磁盘的资源的很重要的，根据经验，每两个container使用一块磁盘以及一个CPU核的时候可以使集群的资源得到一个比较好的利用。</p>
+<h3 id="内存配置"><a href="#内存配置" class="headerlink" title="内存配置"></a>内存配置</h3><p>YARN以及MAPREDUCE所有可用的内存资源应该要除去系统运行需要的以及其他的hadoop的一些程序，总共保留的内存=系统内存+HBASE内存。<br>可以参考下面的表格确定应该保留的内存：</p>
+<table>
+<thead>
+<tr>
+<th>每台机子内存</th>
+<th>系统需要的内存</th>
+<th>HBase需要的内存</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>4GB</td>
+<td>1GB</td>
+<td>1GB</td>
+</tr>
+<tr>
+<td>8GB</td>
+<td>2GB</td>
+<td>1GB</td>
+</tr>
+<tr>
+<td>16GB</td>
+<td>2GB</td>
+<td>2GB</td>
+</tr>
+<tr>
+<td>24GB</td>
+<td>4GB</td>
+<td>4GB</td>
+</tr>
+<tr>
+<td>48GB</td>
+<td>6GB</td>
+<td>8GB</td>
+</tr>
+<tr>
+<td>64GB</td>
+<td>8GB</td>
+<td>8GB</td>
+</tr>
+<tr>
+<td>72GB</td>
+<td>8GB</td>
+<td>8GB</td>
+</tr>
+<tr>
+<td>96GB</td>
+<td>12GB</td>
+<td>16GB</td>
+</tr>
+<tr>
+<td>128GB</td>
+<td>24GB</td>
+<td>24GB</td>
+</tr>
+<tr>
+<td>255GB</td>
+<td>32GB</td>
+<td>32GB</td>
+</tr>
+<tr>
+<td>512GB</td>
+<td>64GB</td>
+<td>64GB</td>
+</tr>
+</tbody></table>
+<p>计算每台机子最多可以拥有多少个container，可以使用下面的公式:<br>containers = min (2<em>CORES, 1.8</em>DISKS, (Total available RAM) / MIN_CONTAINER_SIZE)<br>说明：</p>
+<ul>
+<li>CORES为机器CPU核数</li>
+<li>DISKS为机器上挂载的磁盘个数</li>
+<li>Total available RAM为机器总内存</li>
+<li>MIN_CONTAINER_SIZE是指container最小的容量大小，这需要根据具体情况去设置，可以参考下面的表格：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>每台机子可用的RAM</th>
+<th>container最小值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>小于4GB</td>
+<td>256MB</td>
+</tr>
+<tr>
+<td>4GB到8GB之间</td>
+<td>512MB</td>
+</tr>
+<tr>
+<td>8GB到24GB之间</td>
+<td>1024MB</td>
+</tr>
+<tr>
+<td>大于24GB</td>
+<td>2048MB</td>
+</tr>
+</tbody></table>
+<p>每个container的平均使用内存大小计算方式为：<br>RAM-per-container = max(MIN_CONTAINER_SIZE, (Total Available RAM) / containers))<br>通过上面的计算，YARN以及MAPREDUCE可以这样配置：</p>
+<table>
+<thead>
+<tr>
+<th>配置文件</th>
+<th>配置设置</th>
+<th>默认值</th>
+<th>计算值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>yarn-site.xml</td>
+<td>yarn.nodemanager.resource.memory-mb</td>
+<td>8192MB</td>
+<td>= containers * RAM-per-container</td>
+</tr>
+<tr>
+<td>yarn-site.xml</td>
+<td>yarn.scheduler.minimum-allocation-mb</td>
+<td>1024MB</td>
+<td>= RAM-per-container</td>
+</tr>
+<tr>
+<td>yarn-site.xml</td>
+<td>yarn.scheduler.maximum-allocation-mb</td>
+<td>8192MB</td>
+<td>= containers * RAM-per-container</td>
+</tr>
+<tr>
+<td>yarn-site.xml (check)</td>
+<td>yarn.app.mapreduce.am.resource.mb</td>
+<td>1536MB</td>
+<td>= 2 * RAM-per-container</td>
+</tr>
+<tr>
+<td>yarn-site.xml (check)</td>
+<td>yarn.app.mapreduce.am.command-opts</td>
+<td>-Xmx1024m</td>
+<td>= 0.8 * 2 * RAM-per-container</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.map.memory.mb</td>
+<td>1024MB</td>
+<td>= RAM-per-container</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.reduce.memory.mb</td>
+<td>1024MB</td>
+<td>= 2 * RAM-per-container</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.map.java.opts</td>
+<td></td>
+<td>= 0.8 * RAM-per-container</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.reduce.java.opts</td>
+<td></td>
+<td>= 0.8 * 2 * RAM-per-container</td>
+</tr>
+</tbody></table>
+<p>举个例子：对于128G内存、32核CPU的机器，挂载了7个磁盘，根据上面的说明，系统保留内存为24G，不适应HBase情况下，系统剩余可用内存为104G，计算containers值如下：<br>containers = min (2* 32, 1.8*7 , (128-24)/2) = min (64, 12.6 , 51) = 13<br>计算RAM-per-container值如下：<br>RAM-per-container = max (2, (124-24)/13) = max (2, 8) = 8<br>结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Using cores&#x3D;32 memory&#x3D;128GB disks&#x3D;7 hbase&#x3D;False</span><br><span class="line"> Profile: cores&#x3D;32 memory&#x3D;106496MB reserved&#x3D;24GB usableMem&#x3D;104GB disks&#x3D;7</span><br><span class="line"> Num Container&#x3D;13</span><br><span class="line"> Container Ram&#x3D;8192MB</span><br><span class="line"> Used Ram&#x3D;104GB</span><br><span class="line"> Unused Ram&#x3D;24GB</span><br><span class="line"> yarn.scheduler.minimum-allocation-mb&#x3D;8192</span><br><span class="line"> yarn.scheduler.maximum-allocation-mb&#x3D;106496</span><br><span class="line"> yarn.nodemanager.resource.memory-mb&#x3D;106496</span><br><span class="line"> mapreduce.map.memory.mb&#x3D;8192</span><br><span class="line"> mapreduce.map.java.opts&#x3D;-Xmx6553m</span><br><span class="line"> mapreduce.reduce.memory.mb&#x3D;8192</span><br><span class="line"> mapreduce.reduce.java.opts&#x3D;-Xmx6553m</span><br><span class="line"> yarn.app.mapreduce.am.resource.mb&#x3D;8192</span><br><span class="line"> yarn.app.mapreduce.am.command-opts&#x3D;-Xmx6553m</span><br><span class="line"> mapreduce.task.io.sort.mb&#x3D;3276</span><br></pre></td></tr></table></figure>
+<p>这样的话，每个container内存为8G，似乎有点多，我更愿意根据集群使用情况任务将其调整为2G内存，则集群中下面的参数配置值如下：</p>
+<table>
+<thead>
+<tr>
+<th>配置文件</th>
+<th>配置设置</th>
+<th>计算值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>yarn-site.xml</td>
+<td>yarn.nodemanager.resource.memory-mb</td>
+<td>= 52 * 2 =104 G</td>
+</tr>
+<tr>
+<td>yarn-site.xml</td>
+<td>yarn.scheduler.minimum-allocation-mb</td>
+<td>= 2G</td>
+</tr>
+<tr>
+<td>yarn-site.xml</td>
+<td>yarn.scheduler.maximum-allocation-mb</td>
+<td>= 52 * 2 = 104G</td>
+</tr>
+<tr>
+<td>yarn-site.xml (check)</td>
+<td>yarn.app.mapreduce.am.resource.mb</td>
+<td>= 2 * 2=4G</td>
+</tr>
+<tr>
+<td>yarn-site.xml (check)</td>
+<td>yarn.app.mapreduce.am.command-opts</td>
+<td>= 0.8 * 2 * 2=3.2G</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.map.memory.mb</td>
+<td>= 2G</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.reduce.memory.mb</td>
+<td>= 2 * 2=4G</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.map.java.opts</td>
+<td>= 0.8 * 2=1.6G</td>
+</tr>
+<tr>
+<td>mapred-site.xml</td>
+<td>mapreduce.reduce.java.opts</td>
+<td>= 0.8 * 2 * 2=3.2G</td>
+</tr>
+</tbody></table>
+<p>对应的xml配置为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.nodemanager.resource.memory-mb&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;106496&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.scheduler.minimum-allocation-mb&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;2048&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.scheduler.maximum-allocation-mb&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;106496&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.app.mapreduce.am.resource.mb&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;4096&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.app.mapreduce.am.command-opts&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;-Xmx3276m&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
+<p>另外，还有一下几个参数：</p>
+<ul>
+<li>yarn.nodemanager.vmem-pmem-ratio：任务每使用1MB物理内存，最多可使用虚拟内存量，默认是2.1。</li>
+<li>yarn.nodemanager.pmem-check-enabled：是否启动一个线程检查每个任务正使用的物理内存量，如果任务超出分配值，则直接将其杀掉，默认是true。</li>
+<li>yarn.nodemanager.vmem-pmem-ratio：是否启动一个线程检查每个任务正使用的虚拟内存量，如果任务超出分配值，则直接将其杀掉，默认是true。</li>
+</ul>
+<p>第一个参数的意思是当一个map任务总共分配的物理内存为2G的时候，该任务的container最多内分配的堆内存为1.6G，可以分配的虚拟内存上限为2*2.1=4.2G。另外，照这样算下去，每个节点上YARN可以启动的Map数为104/2=52个。</p>
+<h3 id="CPU配置"><a href="#CPU配置" class="headerlink" title="CPU配置"></a>CPU配置</h3><p>YARN中目前的CPU被划分成虚拟CPU（CPU virtual Core），这里的虚拟CPU是YARN自己引入的概念，初衷是，考虑到不同节点的CPU性能可能不同，每个CPU具有的计算能力也是不一样的，比如某个物理CPU的计算能力可能是另外一个物理CPU的2倍，这时候，你可以通过为第一个物理CPU多配置几个虚拟CPU弥补这种差异。用户提交作业时，可以指定每个任务需要的虚拟CPU个数。</p>
+<ul>
+<li>yarn.nodemanager.resource.cpu-vcores：表示该节点上YARN可使用的虚拟CPU个数，默认是8，注意，目前推荐将该值设值为与物理CPU核数数目相同。如果你的节点CPU核数不够8个，则需要调减小这个值，而YARN不会智能的探测节点的物理CPU总数。</li>
+<li>yarn.scheduler.minimum-allocation-vcores：单个任务可申请的最小虚拟CPU个数，默认是1，如果一个任务申请的CPU个数少于该数，则该对应的值改为这个数。</li>
+<li>yarn.scheduler.maximum-allocation-vcores：单个任务可申请的最多虚拟CPU个数，默认是32。<br>对于一个CPU核数较多的集群来说，上面的默认配置显然是不合适的，在我的测试集群中，4个节点每个机器CPU核数为31，留一个给操作系统，可以配置为：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.nodemanager.resource.cpu-vcores&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;31&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;yarn.scheduler.maximum-allocation-vcores&lt;&#x2F;name&gt;</span><br><span class="line">      &lt;value&gt;124&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/10/YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" data-id="ckb7q0efk001clcud0ukxbmy0" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Yarn和MapReduce的【内存】优化配置详解
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Yarn工作流程</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>
