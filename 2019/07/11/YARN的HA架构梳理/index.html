@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>
-    Yarn工作流程 |
+    YARN的HA架构梳理 |
     
     趣随记</title>
   
@@ -33,7 +33,7 @@
 <body>
 <main class="content">
   <section class="outer">
-  <article id="post-Yarn工作流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  <article id="post-YARN的HA架构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -41,7 +41,7 @@
                 
   
     <h1 class="article-title" itemprop="name">
-      Yarn工作流程
+      YARN的HA架构梳理
     </h1>
   
   
@@ -54,8 +54,8 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="article-date">
-  <time datetime="2019-07-09T09:04:09.000Z" itemprop="datePublished">2019-07-09</time>
+                        <a href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
+  <time datetime="2019-07-11T02:09:10.000Z" itemprop="datePublished">2019-07-11</time>
 </a>
                             
   <div class="article-category">
@@ -67,6 +67,8 @@
 
                         
                             
+    <div class="tocbot"></div>
+
 
 
 
@@ -80,22 +82,43 @@
                                             
 
                                                 
-                                                                    <p><img src="/images/yarn%E6%B5%81%E7%A8%8B.png" alt="yarn流程"></p>
+                                                                    <p>摘要：YARN的架构跟HDFS一样都是主从架构，一旦RM挂掉，整个YARN调度都不可以用，因此生产上YARN也得做HA。</p>
+<a id="more"></a>
+<h3 id="为什么YARN需要HA"><a href="#为什么YARN需要HA" class="headerlink" title="为什么YARN需要HA"></a>为什么YARN需要HA</h3><p>YARN的架构跟HDFS一样都是主从架构，一旦RM挂掉，整个YARN调度都不可以用，因此生产上YARN也得做HA。但是YARN HA架构与HDFS HA架构相比起来要简单一些，个人认为因为存储比计算更重要，所以HDFS HA架构复杂许多。</p>
+<h3 id="YARN的HA如何实现"><a href="#YARN的HA如何实现" class="headerlink" title="YARN的HA如何实现"></a>YARN的HA如何实现</h3><p>与HDFS HA差不多，准备两个RM节点，任何时候只有一个active的RM节点对外提供服务。另一个作为standby的RM节点，当active的RM节点挂掉时，通过ZK将其变为active对外服务。</p>
+<h3 id="YARN-HA架构图"><a href="#YARN-HA架构图" class="headerlink" title="YARN HA架构图"></a>YARN HA架构图</h3><p><img src="/images/YARN%E7%9A%84HA.png" alt="YARN HA"></p>
+<ul>
+<li>RM</li>
+</ul>
 <ol>
-<li>客户端向yarn提交作业，yarn会启动ApplicationsManager，让它来管理作业</li>
-<li>RM会为作业分配对应的NM并且通信，开启作业的ApplicationMaster</li>
-<li>ApplicationMaster会向ApplicationsManager注册，这样用户可以在页面上实时查看任务进度等信息</li>
-<li>ApplicationMaster轮询的通过RPC向ResourceScheduler申请资源</li>
-<li>在ApplicationMaster领取到资源后，会与对应的NM通信要求开启Task</li>
-<li>NM为任务设置好运行环境后，将任务的启动命令写到一个脚本中，并通过该脚本启动并运行任务</li>
-<li>各个Task通过RPC向ApplicationMaster汇报，以让application master随时掌握各个任务的运行状态，从而在任务失败时，重启启动任务</li>
-<li>作业结束后，ApplicationMaster向ApplicationsManager注销并关闭自己</li>
+<li>启动时会通过向ZK的/hadoop-ha目录写一个lock文件，写成功则为active，否则standby。</li>
+<li>active的RM会接收客户端的任务请求，接收和监控nm的资源的汇报，负责资源的分配与调度，启动和监控 ApplicationMaster（AM）。</li>
+</ol>
+<ul>
+<li>RMstatestore</li>
+</ul>
+<ol>
+<li>RM的作业信息存储在ZK的/rmstore下，active RM向这个目录写app信息。</li>
+<li>当active rm挂了，另外一个standby RM成功转换为active RM后，会从/rmstore目录读取相应的作业信息，重新构建作业的内存信息。然后启动内部服务，开始接收NM的心跳，构建集群资源的信息，并接收客户端的提交作业的请求等。</li>
+</ol>
+<ul>
+<li>NM<br>节点上的资源的管理，启动container容器运行task的计算，container资源情况汇报给RM和任务的处理情况汇报给ApplicationMaster（AM）</li>
+<li>ZKFC<br>只作为RM进程的一个线程，而非独立的守护进程来启动。standby RM的ZKFC会一直监控lock文件的是否存在，如果不存在就会尝试去创建，争取为active RM。</li>
+</ul>
+<h3 id="HDFS-HA和YARN-HA区别"><a href="#HDFS-HA和YARN-HA区别" class="headerlink" title="HDFS HA和YARN HA区别"></a>HDFS HA和YARN HA区别</h3><ul>
+<li><strong>HDFS HA中ZKFC为进程，YARN HA中ZKFC为线程</strong></li>
+<li><strong>HDFS HA使用JN集群同步数据，YARN HA中使用存储在Zookeeper中的RMstatestore同步数据</strong></li>
+</ul>
+<h3 id="架构思想引申"><a href="#架构思想引申" class="headerlink" title="架构思想引申"></a>架构思想引申</h3><p>在HDFS的HA架构图中，我们可以发现DN会向两个NN发送block report和heartbeat。这种情况在生产上也有对应的场景，它被称为双写，双写有结果双写和数据同步双写。</p>
+<ol>
+<li>结果双写<br><br>spark–&gt;hbase(所有)+es(业务周期，比如两个月)<br><br>好处：外部调用之时只需要传入日期，内部代码自动识别是否业务周期内的，分别从es或者hbase中取数据。</li>
+<li>数据同步双写<br><br>生产上平时只有一条数据同步的线，但是不要太过依靠，在某些特殊的时间，比如双十一，618等，需要另一条数据同步的线。这个时候你就得考虑两条线是否会互相影响，该怎么解决呢？</li>
 </ol>
 
                                                                         
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" data-id="ckb8pwxps001zywuddidmhakx" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckb8pwxpn001gywud8l8361rk" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -109,19 +132,10 @@
         
   <nav class="article-nav">
     
-      <a href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-nav-link">
-        <strong class="article-nav-caption">前一篇</strong>
-        <div class="article-nav-title">
-          
-            Yarn和MapReduce的【内存】优化配置详解
-          
-        </div>
-      </a>
     
-    
-      <a href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" class="article-nav-link">
+      <a href="/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-nav-link">
         <strong class="article-nav-caption">后一篇</strong>
-        <div class="article-nav-title">hadoop-2.6.0-cdh5.7.0源码编译支持压缩</div>
+        <div class="article-nav-title">HDFS的HA架构梳理</div>
       </a>
     
   </nav>

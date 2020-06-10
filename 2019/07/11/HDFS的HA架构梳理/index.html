@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>
-    Yarn工作流程 |
+    HDFS的HA架构梳理 |
     
     趣随记</title>
   
@@ -33,7 +33,7 @@
 <body>
 <main class="content">
   <section class="outer">
-  <article id="post-Yarn工作流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  <article id="post-HDFS的HA架构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -41,7 +41,7 @@
                 
   
     <h1 class="article-title" itemprop="name">
-      Yarn工作流程
+      HDFS的HA架构梳理
     </h1>
   
   
@@ -54,8 +54,8 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="article-date">
-  <time datetime="2019-07-09T09:04:09.000Z" itemprop="datePublished">2019-07-09</time>
+                        <a href="/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
+  <time datetime="2019-07-11T02:01:09.000Z" itemprop="datePublished">2019-07-11</time>
 </a>
                             
   <div class="article-category">
@@ -67,6 +67,8 @@
 
                         
                             
+    <div class="tocbot"></div>
+
 
 
 
@@ -80,22 +82,49 @@
                                             
 
                                                 
-                                                                    <p><img src="/images/yarn%E6%B5%81%E7%A8%8B.png" alt="yarn流程"></p>
+                                                                    <p>摘要：HDFS本身架构是有缺陷的，NN节点管理着元数据，一旦NN节点挂掉，整个HDFS服务不可用，更别说Hive，Hbase等建立在HDFS之上的服务。<br>还有SNN默认是每隔1小时做一次NN的备份，如果NN挂点，只能恢复之前1个小时的元数据，这两点对7乘24小时无间断服务目标来说完全无法接受，于是生产上必定使用HA。</p>
+<a id="more"></a>
+<h3 id="为什么HDFS需要HA"><a href="#为什么HDFS需要HA" class="headerlink" title="为什么HDFS需要HA"></a>为什么HDFS需要HA</h3><p>HDFS本身架构是有缺陷的，NN节点管理着元数据，一旦NN节点挂掉，整个HDFS服务不可用，更别说Hive，Hbase等建立在HDFS之上的服务。还有SNN默认是每隔1小时做一次NN的备份，如果NN挂点，只能恢复之前1个小时的元数据，这两点对7*24无间断服务目标来说完全无法接受，于是生产上必定使用HA。</p>
+<h3 id="HDFS的HA如何实现"><a href="#HDFS的HA如何实现" class="headerlink" title="HDFS的HA如何实现"></a>HDFS的HA如何实现</h3><p>准备两个NN节点，任何时候只有一个active的NN节点对外提供服务。另一个作为standby的NN节点，当active的NN节点挂掉时，通过ZK将其变为active对外服务。这个时候client是无感知的，<em>生产上一般来说client访问HDFS是使用的namespace</em>，namespace绑定两个NN节点主机名，只需要在<strong>core-site.xml</strong>和<strong>hdfs-site.xml</strong>配置即可。</p>
+<h3 id="HDFS的HA架构图"><a href="#HDFS的HA架构图" class="headerlink" title="HDFS的HA架构图"></a>HDFS的HA架构图</h3><p>下图以3台机器为例，展示HA的架构图。<br>两个NN节点通过JN集群，共享元数据，通过ZKFC进程选举active，监控NN节点状态，自动备援。<br>DN会同时向两个NN节点发送心跳。<br><img src="/images/HDFS%E7%9A%84HA.png" alt="HDFS HA"></p>
+<ul>
+<li>active NN<br>接受client的RPC请求，生成editlog，并向JN集群发送editlog，同时接受DN的heartbeat和block report。</li>
+<li>standby NN<br>在JN集群上拉取editlog，并自身执行一遍，与active的NN元数据保持一致，也就是standby NN是active NN的热备，可以随时切换为active，同时也接受DN的heartbeat和block report。</li>
+<li>JN(JournalNode)集群<br>用于active NN,standby NN的同步数据，本身由一组的JN节点组成的奇数集群，是支持Paxos协议。</li>
+<li>ZNFC(ZookeeperFailoverControl)<br>监控NN的健康状态并向ZK集群定期发送心跳，尝试让自己被选举，当自己被ZK选举为主时，ZNFC进程通过RPC调用让NN转换为active状态。</li>
+</ul>
+<h3 id="部署示例"><a href="#部署示例" class="headerlink" title="部署示例"></a>部署示例</h3><p>大部分公司一般会像下面表格一样部署：</p>
+<table>
+<thead>
+<tr>
+<th align="center">主机名</th>
+<th align="center">部署</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">hadoop001</td>
+<td align="center">ZK/ZKFC/NN/JN/DN</td>
+</tr>
+<tr>
+<td align="center">hadoop002</td>
+<td align="center">ZK/ZKFC/NN/JN/DN</td>
+</tr>
+<tr>
+<td align="center">hadoop003</td>
+<td align="center">ZK/JN/DN</td>
+</tr>
+</tbody></table>
+<p>这里会有三点需要注意：</p>
 <ol>
-<li>客户端向yarn提交作业，yarn会启动ApplicationsManager，让它来管理作业</li>
-<li>RM会为作业分配对应的NM并且通信，开启作业的ApplicationMaster</li>
-<li>ApplicationMaster会向ApplicationsManager注册，这样用户可以在页面上实时查看任务进度等信息</li>
-<li>ApplicationMaster轮询的通过RPC向ResourceScheduler申请资源</li>
-<li>在ApplicationMaster领取到资源后，会与对应的NM通信要求开启Task</li>
-<li>NM为任务设置好运行环境后，将任务的启动命令写到一个脚本中，并通过该脚本启动并运行任务</li>
-<li>各个Task通过RPC向ApplicationMaster汇报，以让application master随时掌握各个任务的运行状态，从而在任务失败时，重启启动任务</li>
-<li>作业结束后，ApplicationMaster向ApplicationsManager注销并关闭自己</li>
+<li><strong>根据架构图来看ZKFC和NN节点必须在一个节点上，不然无法做到自动切换active。</strong></li>
+<li><strong>ZK跟其他部署在同一节点上，如果节点运行负载较大，很有可能当active NN挂掉无法将standby NN切换为active。所以建议ZK单独部署在资源较小的节点上。</strong></li>
+<li><strong>一般来说，集群数据量在小于等于20台的ZK数据量为5台，大于20台小于100台的ZK数据量为7/9/11台，大于100台ZK数量为11台。ZK集群数量并不是越多越好，数量跟选举时间成正比的，ZK集群数量多会延长standby切换到active的时间。</strong></li>
 </ol>
 
                                                                         
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/09/Yarn%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" data-id="ckb8pwxps001zywuddidmhakx" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckb8pwxp9000fywud1jb691fb" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -109,19 +138,19 @@
         
   <nav class="article-nav">
     
-      <a href="/2019/07/10/Yarn%E5%92%8CMapReduce%E7%9A%84%E3%80%90%E5%86%85%E5%AD%98%E3%80%91%E4%BC%98%E5%8C%96%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" class="article-nav-link">
+      <a href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-nav-link">
         <strong class="article-nav-caption">前一篇</strong>
         <div class="article-nav-title">
           
-            Yarn和MapReduce的【内存】优化配置详解
+            YARN的HA架构梳理
           
         </div>
       </a>
     
     
-      <a href="/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" class="article-nav-link">
+      <a href="/2019/07/11/MapReduce%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/" class="article-nav-link">
         <strong class="article-nav-caption">后一篇</strong>
-        <div class="article-nav-title">hadoop-2.6.0-cdh5.7.0源码编译支持压缩</div>
+        <div class="article-nav-title">MapReduce运行机制</div>
       </a>
     
   </nav>
