@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    MapReduce全局排序以及分区排序 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-MapReduce全局排序以及分区排序" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      MapReduce全局排序以及分区排序
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/" class="article-date">
+  <time datetime="2019-07-12T03:15:39.000Z" itemprop="datePublished">2019-07-12</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：根据具体需求完成MR的全局排序以及分区排序</p>
+<a id="more"></a>
+<h3 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h3><p>现有有一段流量日志，第二个字段为手机号码，倒数第三个字段为上行流量，倒数第二个字段为下行流量，具体如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1363157985066 	13726230503	00-FD-07-A4-72-B8:CMCC	120.196.100.82	i02.c.aliimg.com		24	27	2481	24681	200</span><br><span class="line">1363157995052 	13826544101	5C-0E-8B-C7-F1-E0:CMCC	120.197.40.4			4	0	264	0	200</span><br><span class="line">1363157991076 	13926435656	20-10-7A-28-CC-0A:CMCC	120.196.100.99			2	4	132	1512	200</span><br><span class="line">1363154400022 	13926251106	5C-0E-8B-8B-B1-50:CMCC	120.197.40.4			4	0	240	0	200</span><br><span class="line">1363157993044 	18211575961	94-71-AC-CD-E6-18:CMCC-EASY	120.196.100.99	iface.qiyi.com	视频网站	15	12	1527	2106	200</span><br><span class="line">1363157995074 	84138413	5C-0E-8B-8C-E8-20:7DaysInn	120.197.40.4	122.72.52.12		20	16	4116	1432	200</span><br><span class="line">1363157993055 	13560439658	C4-17-FE-BA-DE-D9:CMCC	120.196.100.99			18	15	1116	954	200</span><br><span class="line">1363157995033 	15920133257	5C-0E-8B-C7-BA-20:CMCC	120.197.40.4	sug.so.360.cn	信息安全	20	20	3156	2936	200</span><br></pre></td></tr></table></figure>
+
+<p>要求：<br>1.求每个用户的上行流量、下行流量、总流量并排序<br>2.求每个用户的上行流量、下行流量、总流量并按手机前三位分区排序</p>
+<h3 id="分析思路"><a href="#分析思路" class="headerlink" title="分析思路"></a>分析思路</h3><p>需求1必定会用到自定义类，这个类必须继承WritableComparable，才能实现全局排序。而需求2则比需求1多出分区排序，那么就得再自定义Partitioner类，以手机号前三位来分区。</p>
+<h3 id="需求一代码演示"><a href="#需求一代码演示" class="headerlink" title="需求一代码演示"></a>需求一代码演示</h3><p><strong>自定义序列化类：</strong></p>
+<ul>
+<li>继承WritableComparable用于序列化以及排序</li>
+<li>重写write和readFields方法，注意字段顺序一定要一样</li>
+<li>必须要带有一个默认无参的构造方法</li>
+<li>实现Comparable方法</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;自定义类</span><br><span class="line">import org.apache.hadoop.io.WritableComparable;</span><br><span class="line"></span><br><span class="line">import java.io.DataInput;</span><br><span class="line">import java.io.DataOutput;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class Access implements WritableComparable&lt;Access&gt; &#123;</span><br><span class="line">    private String phone;</span><br><span class="line">    private long up;</span><br><span class="line">    private long down;</span><br><span class="line">    private long sum;</span><br><span class="line"></span><br><span class="line">    public Access(String phone, long up, long down) &#123;</span><br><span class="line">        this.phone &#x3D; phone;</span><br><span class="line">        this.up &#x3D; up;</span><br><span class="line">        this.down &#x3D; down;</span><br><span class="line">        this.sum&#x3D;this.up+this.down;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int compareTo(Access o) &#123;</span><br><span class="line">        return this.sum&gt;o.getSum()?-1:1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void write(DataOutput out) throws IOException &#123;</span><br><span class="line">        out.writeUTF(phone);</span><br><span class="line">        out.writeLong(up);</span><br><span class="line">        out.writeLong(down);</span><br><span class="line">        out.writeLong(sum);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void readFields(DataInput in) throws IOException &#123;</span><br><span class="line">        this.phone&#x3D;in.readUTF();</span><br><span class="line">        this.up&#x3D;in.readLong();</span><br><span class="line">        this.down&#x3D;in.readLong();</span><br><span class="line">        this.sum&#x3D;in.readLong();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Access() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getPhone() &#123;</span><br><span class="line">        return phone;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setPhone(String phone) &#123;</span><br><span class="line">        this.phone &#x3D; phone;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public long getUp() &#123;</span><br><span class="line">        return up;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setUp(long up) &#123;</span><br><span class="line">        this.up &#x3D; up;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public long getDown() &#123;</span><br><span class="line">        return down;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setDown(long down) &#123;</span><br><span class="line">        this.down &#x3D; down;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public long getSum() &#123;</span><br><span class="line">        return sum;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setSum(long sum) &#123;</span><br><span class="line">        this.sum &#x3D; sum;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String toString() &#123;</span><br><span class="line">        return &quot;Access&#123;&quot; +</span><br><span class="line">                &quot;phone&#x3D;&#39;&quot; + phone + &#39;\&#39;&#39; +</span><br><span class="line">                &quot;, up&#x3D;&quot; + up +</span><br><span class="line">                &quot;, down&#x3D;&quot; + down +</span><br><span class="line">                &quot;, sum&#x3D;&quot; + sum +</span><br><span class="line">                &#39;&#125;&#39;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">import org.apache.hadoop.conf.Configuration;</span><br><span class="line">import org.apache.hadoop.fs.FileUtil;</span><br><span class="line">import org.apache.hadoop.fs.Path;</span><br><span class="line">import org.apache.hadoop.io.LongWritable;</span><br><span class="line">import org.apache.hadoop.io.NullWritable;</span><br><span class="line">import org.apache.hadoop.io.Text;</span><br><span class="line">import org.apache.hadoop.mapreduce.Job;</span><br><span class="line">import org.apache.hadoop.mapreduce.Mapper;</span><br><span class="line">import org.apache.hadoop.mapreduce.Reducer;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"></span><br><span class="line">import java.io.File;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class AccessApp &#123;</span><br><span class="line">    public static class MyMaperr extends Mapper&lt;LongWritable, Text, Access, NullWritable&gt; &#123;</span><br><span class="line">        @Override</span><br><span class="line">        protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException &#123;</span><br><span class="line">            String[] spilts &#x3D; value.toString().split(&quot;\t&quot;);</span><br><span class="line">            String phone&#x3D;spilts[1];</span><br><span class="line">            long up&#x3D;Long.parseLong(spilts[spilts.length-3]);</span><br><span class="line">            long down&#x3D;Long.parseLong(spilts[spilts.length-2]);</span><br><span class="line"></span><br><span class="line">            context.write(new Access(phone,up,down),NullWritable.get());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static class MyReduce extends Reducer&lt;Access, NullWritable, Access, NullWritable&gt; &#123;</span><br><span class="line">        @Override</span><br><span class="line">        protected void reduce(Access key, Iterable&lt;NullWritable&gt; values, Context context) throws IOException, InterruptedException &#123;</span><br><span class="line">            for (NullWritable val:values) &#123;</span><br><span class="line">                context.write(key,NullWritable.get());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException &#123;</span><br><span class="line">        Configuration configuration &#x3D; new Configuration();</span><br><span class="line">        Job job &#x3D; Job.getInstance(configuration, &quot;AccessApp&quot;);</span><br><span class="line"></span><br><span class="line">        job.setJarByClass(AccessApp.class);</span><br><span class="line"></span><br><span class="line">        job.setMapperClass(MyMaperr.class);</span><br><span class="line">        job.setReducerClass(MyReduce.class);</span><br><span class="line"></span><br><span class="line">        job.setMapOutputKeyClass(Access.class);</span><br><span class="line">        job.setMapOutputValueClass(NullWritable.class);</span><br><span class="line">        job.setOutputKeyClass(Access.class);</span><br><span class="line">        job.setOutputValueClass(NullWritable.class);</span><br><span class="line"></span><br><span class="line">        String input &#x3D; &quot;data\\input\\access.log&quot;;</span><br><span class="line">        String output &#x3D; &quot;data\\out&quot;;</span><br><span class="line">        FileUtil.fullyDelete(new File(output));</span><br><span class="line">        FileInputFormat.addInputPath(job, new Path(input));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, new Path(output));</span><br><span class="line"></span><br><span class="line">        System.exit(job.waitForCompletion(true) ? 0 : 1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="需求二代码演示"><a href="#需求二代码演示" class="headerlink" title="需求二代码演示"></a>需求二代码演示</h3><p>与需求一相比，也就多出自定义Partitioner类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.hadoop.io.NullWritable;</span><br><span class="line">import org.apache.hadoop.mapreduce.Partitioner;</span><br><span class="line"></span><br><span class="line">public class AccessPatition extends Partitioner&lt;Access, NullWritable&gt; &#123;</span><br><span class="line"></span><br><span class="line">    public int getPartition(Access access, NullWritable nullWritable, int numPartitions) &#123;</span><br><span class="line">        String phone &#x3D; access.getPhone();</span><br><span class="line">        if (phone.startsWith(&quot;135&quot;))&#123;</span><br><span class="line">            return 0;</span><br><span class="line">        &#125;else if (phone.startsWith(&quot;182&quot;))&#123;</span><br><span class="line">            return 1;</span><br><span class="line">        &#125;else &#123;</span><br><span class="line">            return 2;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#与之在main方法中多出以下代码：</span><br><span class="line"></span><br><span class="line">job.setPartitionerClass(AccessPatition.class);</span><br><span class="line">job.setNumReduceTasks(3);</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>注意：示例中ReduceTask设置的数目大于Partitioner输出文件会有空的，若是不为一但小于Partitioner数目的就会报错，所以ReduceTask设置的数目最好等于Partitioner数</strong></p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/" data-id="ckb8shhkn0016fwud1u0h0iwq" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+    
+      <a href="/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">源码分析MapReduce如何运作的</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

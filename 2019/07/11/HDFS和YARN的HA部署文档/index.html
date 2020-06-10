@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HDFS和YARN的HA部署文档 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HDFS和YARN的HA部署文档" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HDFS和YARN的HA部署文档
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
+  <time datetime="2019-07-11T02:54:12.000Z" itemprop="datePublished">2019-07-11</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：详细介绍如何部署HDFS和YARN的HA部署过程以及其中的坑。</p>
+<a id="more"></a>
+<h3 id="部署规划"><a href="#部署规划" class="headerlink" title="部署规划"></a>部署规划</h3><table>
+<thead>
+<tr>
+<th align="center">主机名</th>
+<th align="center">部署</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ruozedata001</td>
+<td align="center">ZK/ZKFC/NN/JN/DN/RM/NM/JobHistory</td>
+</tr>
+<tr>
+<td align="center">ruozedata002</td>
+<td align="center">ZK/ZKFC/NN/JN/DN/RM/NM</td>
+</tr>
+<tr>
+<td align="center">ruozedata003</td>
+<td align="center">ZK/JN/DN/NM</td>
+</tr>
+</tbody></table>
+<h3 id="SSH免密码登陆"><a href="#SSH免密码登陆" class="headerlink" title="SSH免密码登陆"></a>SSH免密码登陆</h3><ol>
+<li>在三台机器的/etc/hosts文件末尾添加如下，然后各个机器使用ping 主机名来验证各个服务器是否能识别主机名。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ruozedata001内网IP	ruozedata001</span><br><span class="line">ruozedata002内网IP	ruozedata002</span><br><span class="line">ruozedata003内网IP	ruozedata003</span><br></pre></td></tr></table></figure></li>
+<li>在各个服务器上添加新用户hadoop，并将ZooKeeper和Hadoop安装包放入hadoop用户家目录下的software。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@ruozedata001 ~]# useradd hadoop</span><br><span class="line">[root@ruozedata001 ~]# su - hadoop</span><br><span class="line">[hadoop@ruozedata001 ~]$ ll</span><br><span class="line">total 8</span><br><span class="line">drwxrwxr-x  2 hadoop hadoop   69 Aug 14 15:33 app</span><br><span class="line">drwxrwxr-x  5 hadoop hadoop 4096 Aug 13 16:27 data</span><br><span class="line">drwxrwxr-x  2 hadoop hadoop    6 Jul  1 21:44 log</span><br><span class="line">drwxrwxr-x 10 hadoop hadoop 4096 Aug 14 15:20 software</span><br><span class="line">drwxrwxr-x  2 hadoop hadoop   45 Jul  9 09:29 source</span><br></pre></td></tr></table></figure></li>
+<li>参考之前转载的<a href="https://liverrrr.github.io/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" target="_blank" rel="noopener">配置多台机器SSH相互通信信任</a>文章配置SSH免密码，值得注意的是这里配置的用户是新建的hadoop用户，这个是没有密码的，所以不能使用scp，需要手动将提及的文件放入服务器中。</li>
+</ol>
+<h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><p>每台机器参照之前的<a href="https://liverrrr.github.io/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" target="_blank" rel="noopener">Hadoop伪分布式部署文档</a>文章中的JDK安装部分即可，需要注意的是解压之后需要查看该JDK目录的所属用户及所属组是否正确，以及将Java配置在全局变量中。</p>
+<h3 id="安装ZooKeeper"><a href="#安装ZooKeeper" class="headerlink" title="安装ZooKeeper"></a>安装ZooKeeper</h3><ol>
+<li>每个服务器使用以下命令解压到app目录，并创建软链接。<em>至于为什么使用软链接，请翻阅本博客的Linux系列文章</em>。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ tar -zxvf ~&#x2F;software&#x2F;zookeeper-3.4.6.tar.gz -C ~&#x2F;app</span><br><span class="line">[hadoop@ruozedata001 ~]$ ln -s &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper-3.4.6.tar.gz &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper</span><br></pre></td></tr></table></figure></li>
+<li>在ruozedata001机器上，进入zookeeper/conf，修改zoo.cfg文件，创建myid文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ cd ~&#x2F;zookeeper&#x2F;conf</span><br><span class="line">[hadoop@ruozedata001 conf]$ cp zoo_sample.cfg zoo.cfg</span><br><span class="line">[hadoop@ruozedata001 conf]$ vim zoo.cfg</span><br><span class="line"># The number of milliseconds of each tick</span><br><span class="line">tickTime&#x3D;2000</span><br><span class="line"># The number of ticks that the initial</span><br><span class="line"># synchronization phase can take</span><br><span class="line">initLimit&#x3D;10</span><br><span class="line"># The number of ticks that can pass between</span><br><span class="line"># sending a request and getting an acknowledgement</span><br><span class="line">syncLimit&#x3D;5</span><br><span class="line"># the directory where the snapshot is stored.</span><br><span class="line"># do not use &#x2F;tmp for storage, &#x2F;tmp here is just</span><br><span class="line"># example sakes.</span><br><span class="line">dataDir&#x3D;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;zookeeper&#x2F;     &lt;-- 这个目录记得要创建</span><br><span class="line"># the port at which the clients will connect</span><br><span class="line">clientPort&#x3D;2181</span><br><span class="line"># the maximum number of client connections.</span><br><span class="line"># increase this if you need to handle more clients</span><br><span class="line">#maxClientCnxns&#x3D;60</span><br><span class="line">#</span><br><span class="line"># Be sure to read the maintenance section of the</span><br><span class="line"># administrator guide before turning on autopurge.</span><br><span class="line">#</span><br><span class="line"># http:&#x2F;&#x2F;zookeeper.apache.org&#x2F;doc&#x2F;current&#x2F;zookeeperAdmin.html#sc_maintenance</span><br><span class="line">#</span><br><span class="line"># The number of snapshots to retain in dataDir</span><br><span class="line">#autopurge.snapRetainCount&#x3D;3</span><br><span class="line"># Purge task interval in hours</span><br><span class="line"># Set to &quot;0&quot; to disable auto purge feature</span><br><span class="line">#autopurge.purgeInterval&#x3D;1</span><br><span class="line">server.1&#x3D;ruozedata001:2888:3888</span><br><span class="line">server.2&#x3D;ruozedata002:2888:3888</span><br><span class="line">server.3&#x3D;ruozedata003:2888:3888</span><br><span class="line">[hadoop@ruozedata001 conf]$ mkdir -p &#x2F;home&#x2F;hadoop&#x2F;data&#x2F;zookeeper&#x2F;</span><br><span class="line">[hadoop@ruozedata001 conf]$ cd &#x2F;home&#x2F;hadoop&#x2F;data&#x2F;zookeeper&#x2F;</span><br><span class="line">[hadoop@ruozedata001 zookeeper]$ touch myid   &lt;-- 各个服务器都要创建</span><br><span class="line">[hadoop@ruozedata001 zookeeper]$ echo 1 &gt; myid</span><br><span class="line"></span><br><span class="line"># ruozedata002&#x2F;003,也修改配置,就myid值不同</span><br><span class="line"># ssh免密码配置之后就可以scp不用输入密码</span><br><span class="line">[hadoop@ruozedata001 ~] scp ~&#x2F;app&#x2F;zookeeper&#x2F;conf&#x2F;zoo.cfg hadoop@ruozedata002:&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;conf</span><br><span class="line">[hadoop@ruozedata001 ~] scp ~&#x2F;app&#x2F;zookeeper&#x2F;conf&#x2F;zoo.cfg hadoop@ruozedata003:&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;conf</span><br><span class="line"></span><br><span class="line"># 重点关注</span><br><span class="line">[hadoop@ruozedata002 zookeeper]$ echo 2 &gt; data&#x2F;myid    </span><br><span class="line">[hadoop@ruozedata003 zookeeper]$ echo 3 &gt; data&#x2F;myid</span><br></pre></td></tr></table></figure></li>
+<li>各个服务器配置环境变量<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~] vim ~&#x2F;.bash_profile</span><br><span class="line"># .bash_profile</span><br><span class="line"></span><br><span class="line"># Get the aliases and functions</span><br><span class="line">if [ -f ~&#x2F;.bashrc ]; then</span><br><span class="line">        . ~&#x2F;.bashrc</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"># User specific environment and startup programs</span><br><span class="line"></span><br><span class="line">export ZOOKEEPER_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper</span><br><span class="line">export PATH&#x3D;$&#123;ZOOKEEPER_HOME&#125;&#x2F;bin:$PATH</span><br><span class="line">[hadoop@ruozedata001 ~] . ~&#x2F;.bash_profile</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="Hadoop安装"><a href="#Hadoop安装" class="headerlink" title="Hadoop安装"></a>Hadoop安装</h3><ol>
+<li>各个服务器解压hadoop-2.6.0-cdh5.15.1.tar.gz<br>此处使用的hadoop-2.6.0-cdh5.15.1是已经源码编译过的，支持压缩。至于如何编译本篇不做阐述，想要编译的小伙伴请参考<a href="https://liverrrr.github.io/2019/07/09/hadoop-2.6.0-cdh5.7.0%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/" target="_blank" rel="noopener">hadoop-2.6.0-cdh5.7.0源码编译支持压缩</a>来动手编译。<br>我一般将压缩包放在software目录下，直接解压到app目录，然后再做个软连接，配置一下个人环境变量。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 software] tar -zxvf hadoop-2.6.0-cdh5.15.1.tar.gz -C ~&#x2F;app&#x2F;</span><br><span class="line">[hadoop@ruozedata001 software] cd ~&#x2F;app&#x2F;</span><br><span class="line">[hadoop@ruozedata001 app] ln -s &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1 &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop</span><br><span class="line">[hadoop@ruozedata001 app] vim ~&#x2F;.bash_porfile</span><br><span class="line"># .bash_profile</span><br><span class="line"></span><br><span class="line"># Get the aliases and functions</span><br><span class="line">if [ -f ~&#x2F;.bashrc ]; then</span><br><span class="line">        . ~&#x2F;.bashrc</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"># User specific environment and startup programs</span><br><span class="line"></span><br><span class="line">export ZOOKEEPER_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper</span><br><span class="line">export HADOOP_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop</span><br><span class="line">export PATH&#x3D;$&#123;HADOOP_HOME&#125;&#x2F;bin:$&#123;HADOOP_HOME&#125;&#x2F;sbin:$&#123;ZOOKEEPER_HOME&#125;&#x2F;bin:$PATH</span><br><span class="line">[hadoop@ruozedata001 app] . ~&#x2F;.bash_porfile</span><br></pre></td></tr></table></figure></li>
+<li>修改hadoop配置文件<br>首先修改ruozedata001节点的配置文件，然后再将配置文件scp到ruozedata002、ruozedata003节点上。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 hadoop] pwd</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop&#x2F;etc&#x2F;hadoop</span><br><span class="line">[hadoop@ruozedata001 hadoop]$ vim hadoop-env.sh</span><br><span class="line">...</span><br><span class="line"># The only required environment variable is JAVA_HOME.  All others are</span><br><span class="line"># optional.  When running a distributed configuration it is best to</span><br><span class="line"># set JAVA_HOME in this file, so that it is correctly defined on</span><br><span class="line"># remote nodes.</span><br><span class="line"></span><br><span class="line"># The java implementation to use.</span><br><span class="line">export JAVA_HOME&#x3D;&#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45   &lt;-- 这里修改成java安装路径</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 hadoop]$ rm -rf core-site.xml hdfs-site.xml mapred-site.xml slaves yarn-site.xml</span><br><span class="line"># 删除之后，到这个链接https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1lfZ2Vd-OBoMFBdWTLoJT4Q下载配置文件，提取码为wpz1，然后上传该目录下</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 hadoop]$ dos2uninx *    &lt;--转变配置文件格式为Linux格式</span><br><span class="line">[hadoop@ruozedata001 hadoop]$ cd ~&#x2F;app&#x2F;hadoop</span><br><span class="line">[hadoop@ruozedata001 hadoop]$ scp -r etc hadoop@ruozedata002:&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop&#x2F;</span><br><span class="line">[hadoop@ruozedata001 hadoop]$ scp -r etc hadoop@ruozedata003:&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop&#x2F;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h3><ol>
+<li><p>启动Zookeeper<br>命令： zkServer.sh start|stop|status<br>由于在环境变量里设置Zookeeper，所以可以直接在各个服务器上家目录执行zkServer.sh start</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ zkServer.sh start</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">[hadoop@ruozedata001 ~]$ zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Mode: follower</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata002 ~]$ zkServer.sh start</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">[hadoop@ruozedata002 ~]$ zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Mode: follower</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata003 ~]$ zkServer.sh start</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">[hadoop@ruozedata003 ~]$ zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Mode: leader</span><br></pre></td></tr></table></figure></li>
+<li><p>启动JN集群<br>由于在环境变量里设置Hadoop，所以可以直接在各个服务器上家目录执行命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ hadoop-daemon.sh start journalnode</span><br><span class="line">starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata001.out</span><br><span class="line">[hadoop@ruozedata001 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">1440 JournalNode</span><br><span class="line">1489 Jps</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata002 ~]$ hadoop-daemon.sh start journalnode</span><br><span class="line">starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata002.out</span><br><span class="line">[hadoop@ruozedata002 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">1440 JournalNode</span><br><span class="line">1489 Jps</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata003 ~]$ hadoop-daemon.sh start journalnode</span><br><span class="line">starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata003.out</span><br><span class="line">[hadoop@ruozedata003 ~]$ jps</span><br><span class="line">1442 JournalNode</span><br><span class="line">1491 Jps</span><br><span class="line">1276 QuorumPeerMain</span><br></pre></td></tr></table></figure></li>
+<li><p>格式化namenode<br>集群部署情况中说明了。ruozedata001和ruozedata002两个节点为NN。所以两者的元数据必须一致，我们先将ruozedata001格式化，然后再将元数据发送到ruozedata002。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ hadoop namenode -format</span><br><span class="line">……………..</span><br><span class="line">……………..</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:50 INFO namenode.FSImage: Allocated new BlockPoolId: BP-1577237506-</span><br><span class="line">192.168.137.130-1504365410166</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:50 INFO common.Storage: Storage directory &#x2F;home&#x2F;hadoop&#x2F;data&#x2F;dfs&#x2F;name </span><br><span class="line">has been successfully formatted.   &lt;-- 标志成功了</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:50 INFO namenode.FSImageFormatProtobuf: Saving image file </span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;dfs&#x2F;name&#x2F;current&#x2F;fsimage.ckpt_0000000000000000000 using no </span><br><span class="line">compression</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:50 INFO namenode.FSImageFormatProtobuf: Image file </span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;dfs&#x2F;name&#x2F;current&#x2F;fsimage.ckpt_0000000000000000000 of size 306 bytes </span><br><span class="line">saved in 0 seconds.</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:51 INFO namenode.NNStorageRetentionManager: Going to retain 1 images with txid &gt;&#x3D; </span><br><span class="line">0</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:51 INFO util.ExitUtil: Exiting with status 0</span><br><span class="line">19&#x2F;08&#x2F;19 23:16:51 INFO namenode.NameNode: SHUTDOWN_MSG: </span><br><span class="line">&#x2F;************************************************************</span><br><span class="line">SHUTDOWN_MSG: Shutting down NameNode at hadoop001&#x2F;192.168.137.130</span><br><span class="line">************************************************************&#x2F;</span><br><span class="line"></span><br><span class="line"># 同步元数据</span><br><span class="line">[hadoop@ruozedata001 data]$ pwd</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;data</span><br><span class="line">[hadoop@ruozedata001 data]$ scp -r name hadoop@ruozedata002:&#x2F;home&#x2F;hadoop&#x2F;data</span><br><span class="line">in_use.lock 						100% 14 0.0KB&#x2F;s 00:00 </span><br><span class="line">VERSION 						100% 167 0.2KB&#x2F;s 00:00 </span><br><span class="line">seen_txid 						100% 2 0.0KB&#x2F;s 00:00 </span><br><span class="line">VERSION 						100% 220 0.2KB&#x2F;s 00:00 </span><br><span class="line">fsimage_0000000000000000000.md5 			100% 62 0.1KB&#x2F;s 00:00 </span><br><span class="line">fsimage_0000000000000000000 				100% 306 0.3KB&#x2F;s 00:00</span><br></pre></td></tr></table></figure></li>
+<li><p>初始化ZFCK<br>只需要在ruozedata001上执行hdfs zkfc -formatZK</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ hdfs zkfc -formatZK</span><br><span class="line">……………..</span><br><span class="line">……………..</span><br><span class="line">19&#x2F;08&#x2F;19 23:19:13 INFO ha.ActiveStandbyElector: Session connected.</span><br><span class="line">19&#x2F;08&#x2F;19 23:19:13 INFO ha.ActiveStandbyElector: Successfully created &#x2F;hadoop-ha&#x2F;mycluster in ZK.   &lt;--成功</span><br><span class="line">19&#x2F;08&#x2F;19 23:19:13 INFO zookeeper.ZooKeeper: Session: 0x35e42f121f50000 closed</span><br><span class="line">19&#x2F;08&#x2F;19 23:19:13 INFO zookeeper.ClientCnxn: EventThread shut down</span><br><span class="line">19&#x2F;08&#x2F;19 23:19:13 INFO tools.DFSZKFailoverController: SHUTDOWN_MSG: </span><br><span class="line">&#x2F;************************************************************</span><br><span class="line">SHUTDOWN_MSG: Shutting down DFSZKFailoverController at hadoop001&#x2F;192.168.137.130</span><br><span class="line">*********************************************************</span><br></pre></td></tr></table></figure></li>
+<li><p>启动hdfs集群</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">hadoop@ruozedata001 ~]$ start-dfs.sh </span><br><span class="line">Starting namenodes on [ruozedata001 ruozedata002]</span><br><span class="line">ruozedata001: starting namenode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-namenode-ruozedata001.out</span><br><span class="line">ruozedata002: starting namenode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-namenode-ruozedata002.out</span><br><span class="line">ruozedata002: starting datanode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-datanode-ruozedata002.out</span><br><span class="line">ruozedata001: starting datanode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-datanode-ruozedata001.out</span><br><span class="line">ruozedata003: starting datanode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-datanode-ruozedata003.out</span><br><span class="line">Starting journal nodes [ruozedata001 ruozedata002 ruozedata003]</span><br><span class="line">ruozedata003: starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata003.out</span><br><span class="line">ruozedata001: starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata001.out</span><br><span class="line">ruozedata002: starting journalnode, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-journalnode-ruozedata002.out</span><br><span class="line">Starting ZK Failover Controllers on NN hosts [ruozedata001 ruozedata002]</span><br><span class="line">ruozedata001: starting zkfc, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-zkfc-ruozedata001.out</span><br><span class="line">ruozedata002: starting zkfc, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;hadoop-hadoop-zkfc-ruozedata002.out</span><br><span class="line"></span><br><span class="line"># 验证</span><br><span class="line">[hadoop@ruozedata001 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">3344 Jps</span><br><span class="line">3089 JournalNode</span><br><span class="line">2898 DataNode</span><br><span class="line">3271 DFSZKFailoverController</span><br><span class="line">2794 NameNode</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata002 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">2418 JournalNode</span><br><span class="line">2323 DataNode</span><br><span class="line">2249 NameNode</span><br><span class="line">2540 DFSZKFailoverController</span><br><span class="line">2588 Jps</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata003 ~]$ jps</span><br><span class="line">1276 QuorumPeerMain</span><br><span class="line">2220 Jps</span><br><span class="line">2156 JournalNode</span><br><span class="line">2061 DataNode</span><br></pre></td></tr></table></figure>
+<p>浏览器访问:<br><a href="http://ruozedata001外网IP:50070/" target="_blank" rel="noopener">http://ruozedata001外网IP:50070/</a><br><a href="http://ruozedata002外网IP:50070/" target="_blank" rel="noopener">http://ruozedata002外网IP:50070/</a></p>
+</li>
+<li><p>启动Yarn集群</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ start-yarn.sh </span><br><span class="line">starting yarn daemons</span><br><span class="line">starting resourcemanager, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;yarn-hadoop-resourcemanager-ruozedata001.out</span><br><span class="line">ruozedata003: starting nodemanager, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;yarn-hadoop-nodemanager-ruozedata003.out</span><br><span class="line">ruozedata001: starting nodemanager, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;yarn-hadoop-nodemanager-ruozedata001.out</span><br><span class="line">ruozedata002: starting nodemanager, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;yarn-hadoop-nodemanager-ruozedata002.out</span><br><span class="line"></span><br><span class="line"># ruozedata002备机启动RM</span><br><span class="line">[hadoop@ruozedata002 ~]$ yarn-daemon.sh start resourcemanager</span><br><span class="line">starting resourcemanager, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;yarn-hadoop-resourcemanager-ruozedata002.out</span><br><span class="line"></span><br><span class="line"># 验证</span><br><span class="line">[hadoop@ruozedata001 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">3089 JournalNode</span><br><span class="line">2898 DataNode</span><br><span class="line">3507 NodeManager</span><br><span class="line">3271 DFSZKFailoverController</span><br><span class="line">3400 ResourceManager</span><br><span class="line">3834 Jps</span><br><span class="line">2794 NameNode</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata002 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">2418 JournalNode</span><br><span class="line">2323 DataNode</span><br><span class="line">2822 ResourceManager</span><br><span class="line">2249 NameNode</span><br><span class="line">2540 DFSZKFailoverController</span><br><span class="line">2877 Jps</span><br><span class="line">2671 NodeManager</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata003 ~]$ jps</span><br><span class="line">2265 NodeManager</span><br><span class="line">2395 Jps</span><br><span class="line">1276 QuorumPeerMain</span><br><span class="line">2156 JournalNode</span><br><span class="line">2061 DataNode</span><br></pre></td></tr></table></figure>
+<p>浏览器访问：<br>RM active：<a href="http://ruozedata001外网IP:8088" target="_blank" rel="noopener">http://ruozedata001外网IP:8088</a><br>RM standby：<a href="http://ruozedata002外网IP:8088/cluster/cluster" target="_blank" rel="noopener">http://ruozedata002外网IP:8088/cluster/cluster</a></p>
+</li>
+<li><p>启动jobhistory</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ mr-jobhistory-daemon.sh start historyserver</span><br><span class="line">starting historyserver, logging to &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hadoop-2.6.0-cdh5.15.1&#x2F;logs&#x2F;mapred-hadoop-historyserver-ruozedata001.out</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 ~]$ jps</span><br><span class="line">1280 QuorumPeerMain</span><br><span class="line">3888 JobHistoryServer</span><br><span class="line">3089 JournalNode</span><br><span class="line">2898 DataNode</span><br><span class="line">3507 NodeManager</span><br><span class="line">3271 DFSZKFailoverController</span><br><span class="line">3928 Jps</span><br><span class="line">3400 ResourceManager</span><br><span class="line">2794 NameNode</span><br></pre></td></tr></table></figure>
+<p>浏览器访问：<a href="http://ruozedata001外网IP:19888/jobhistory" target="_blank" rel="noopener">http://ruozedata001外网IP:19888/jobhistory</a></p>
+</li>
+</ol>
+<h3 id="关闭集群"><a href="#关闭集群" class="headerlink" title="关闭集群"></a>关闭集群</h3><p>先关yarn再hdfs</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ mr-jobhistory-daemon.sh stop historyserver</span><br><span class="line">[hadoop@ruozedata002 ~]$ yarn-daemon.sh stop resourcemanager</span><br><span class="line">[hadoop@ruozedata001 ~]$ stop-all.sh</span><br><span class="line">[hadoop@ruozedata001 ~]$ zkServer.sh stop</span><br><span class="line">[hadoop@ruozedata002 ~]$ zkServer.sh stop</span><br><span class="line">[hadoop@ruozedata003 ~]$ zkServer.sh stop</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" data-id="ckb8shhk80006fwudhkqh9481" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            源码分析MapReduce如何运作的
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">YARN的HA架构梳理</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>
