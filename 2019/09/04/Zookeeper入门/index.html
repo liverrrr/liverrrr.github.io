@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Zookeeper入门 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Zookeeper入门" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Zookeeper入门
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" class="article-date">
+  <time datetime="2019-09-04T07:53:11.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件同时也是Apache顶级项目之一。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。</p>
+<a id="more"></a>
+<h2 id="Zookeeper是什么"><a href="#Zookeeper是什么" class="headerlink" title="Zookeeper是什么"></a>Zookeeper是什么</h2><p>ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件同时也是Apache顶级项目之一。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。</p>
+<h2 id="Zookeeper核心术语"><a href="#Zookeeper核心术语" class="headerlink" title="Zookeeper核心术语"></a>Zookeeper核心术语</h2><p>Zookeeper的数据模型就是树形结构，每个节点叫做Znode。它在某种程度可以看成文件系统，每个节点都是唯一的。</p>
+<p><img src="/images/zookeeper%E6%A8%A1%E5%9E%8B.png" alt="zookeeper模型"></p>
+<p>Znode有两大类型，一种是临时(ephemeral)节点，它不允许拥有子节点，而且它的生命周期是本次会话，也就是创建这个临时节点的会话结束后临时节点就不会存在；另一种就是永久节点，一旦创建除非删除否则一直存在。同时这两类型Znode也能为sequential类型，这种类型的Znode最大的特点就是命名是带有001，002…一类的。<br>每个Znode都会有个版本号来控制并发，当节点修改之后，这个版本会增加，这里主要参考乐观锁，默认操作都是按照最新版本操作的。同时Znode也能存储数据，不宜过大存储几K数据即可。<br><strong>最重要的是Znode可以设置watch来监控节点，需要注意的是这个wacth是一次性的以及只能监控到本节点和子节点的创建和删除，子节点具体数据修改是监控不到的，当然这个可以在API层次解决的，后面篇幅会说到。</strong></p>
+<h2 id="Zookeeper怎么使用"><a href="#Zookeeper怎么使用" class="headerlink" title="Zookeeper怎么使用"></a>Zookeeper怎么使用</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>这里只简略的介绍单节点部署，如果你对集群部署感兴趣的话，请看<a href="https://liverrrr.github.io/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" target="_blank" rel="noopener">HDFS和YARN的HA部署文档</a>文章的安装ZooKeeper部分。本次示例的zookeeper版本为3.4.5-cdh5.15.1。</p>
+<ul>
+<li>下载解压<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ wget http:&#x2F;&#x2F;archive.cloudera.com&#x2F;cdh5&#x2F;cdh&#x2F;5&#x2F;zookeeper-3.4.5-cdh5.15.1.tar.gz</span><br><span class="line">[hadoop@hadoop001 software]$ tar -zxvf zookeeper-3.4.5-cdh5.15.1.tar.gz</span><br><span class="line">[hadoop@hadoop001 software]$ ln -s &#x2F;home&#x2F;hadoop&#x2F;software&#x2F;zookeeper-3.4.5-cdh5.15.1 &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper</span><br></pre></td></tr></table></figure></li>
+<li>修改配置文件和添加环境变量<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ cd ~&#x2F;app&#x2F;zookeeper</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ cd conf&#x2F;</span><br><span class="line">[hadoop@hadoop001 conf]$ cp zoo_sample.cfg zoo.cfg</span><br><span class="line">[hadoop@hadoop001 conf]$ vim zoo.cfg</span><br><span class="line"># The number of milliseconds of each tick</span><br><span class="line">tickTime&#x3D;2000</span><br><span class="line"># The number of ticks that the initial </span><br><span class="line"># synchronization phase can take</span><br><span class="line">initLimit&#x3D;10</span><br><span class="line"># The number of ticks that can pass between </span><br><span class="line"># sending a request and getting an acknowledgement</span><br><span class="line">syncLimit&#x3D;5</span><br><span class="line"># the directory where the snapshot is stored.</span><br><span class="line"># do not use &#x2F;tmp for storage, &#x2F;tmp here is just </span><br><span class="line"># example sakes.</span><br><span class="line">dataDir&#x3D;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;zookeeper          &lt;-- 改动此处</span><br><span class="line"># the port at which the clients will connect</span><br><span class="line">clientPort&#x3D;2181</span><br><span class="line"># the maximum number of client connections.</span><br><span class="line"># increase this if you need to handle more clients</span><br><span class="line">#maxClientCnxns&#x3D;60</span><br><span class="line">#</span><br><span class="line"># Be sure to read the maintenance section of the </span><br><span class="line"># administrator guide before turning on autopurge.</span><br><span class="line">#</span><br><span class="line"># http:&#x2F;&#x2F;zookeeper.apache.org&#x2F;doc&#x2F;current&#x2F;zookeeperAdmin.html#sc_maintenance</span><br><span class="line">#</span><br><span class="line"># The number of snapshots to retain in dataDir</span><br><span class="line">#autopurge.snapRetainCount&#x3D;3</span><br><span class="line"># Purge task interval in hours</span><br><span class="line"># Set to &quot;0&quot; to disable auto purge feature</span><br><span class="line">#autopurge.purgeInterval&#x3D;1</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 conf]$ vim ~&#x2F;.bash_profile </span><br><span class="line">...</span><br><span class="line">export ZOOKEEPER_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper</span><br><span class="line">export PATH&#x3D;$&#123;ZOOKEEPER_HOME&#125;&#x2F;bin:$PATH</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 conf]$ . ~&#x2F;.bash_profile</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>注意：如果你不知到为什么要修改zookeeper配置文件dataDir路径，请看<a href="https://liverrrr.fun/archives/hadoop_pid_error" target="_blank" rel="noopener">hadoop无法正常停止</a>文章最后提及的Linux特性。</strong></p>
+<ul>
+<li>启动<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 启动服务端</span><br><span class="line">[hadoop@hadoop001 conf]$ zkServer.sh start</span><br><span class="line"></span><br><span class="line"># 启动客户端</span><br><span class="line">[hadoop@hadoop001 conf]$ zkCli.sh</span><br><span class="line">....</span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] </span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected type:None path:null</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 0]</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 带watch都是一次性监控的</span><br><span class="line">[zk: localhost:2181(CONNECTED) 7] help</span><br><span class="line">ZooKeeper -server host:port cmd args</span><br><span class="line">	stat path [watch]</span><br><span class="line">	set path data [version]</span><br><span class="line">	ls path [watch]</span><br><span class="line">	ls2 path [watch]</span><br><span class="line">	delete path [version]</span><br><span class="line">	rmr path</span><br><span class="line">	get path [watch]</span><br><span class="line">	create [-s] [-e] path data acl</span><br></pre></td></tr></table></figure>
+<p><strong>需要注意的是，create -s代表是创建sequential Znode，create -e代表创建ephemeral Znode，还有ls2运行出来效果跟ls+get一样。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] stat &#x2F;ruozedata</span><br><span class="line">cZxid &#x3D; 0x4d    &#x2F;&#x2F;创建id</span><br><span class="line">ctime &#x3D; Mon Sep 02 22:46:14 CST 2019   &#x2F;&#x2F;创建时间</span><br><span class="line">mZxid &#x3D; 0x55    &#x2F;&#x2F;最后修改id</span><br><span class="line">mtime &#x3D; Mon Sep 02 22:49:18 CST 2019   &#x2F;&#x2F;最后修改时间</span><br><span class="line">pZxid &#x3D; 0x66</span><br><span class="line">cversion &#x3D; 8    </span><br><span class="line">dataVersion &#x3D; 1  &#x2F;&#x2F;版本 </span><br><span class="line">aclVersion &#x3D; 0 </span><br><span class="line">ephemeralOwner &#x3D; 0x0   &#x2F;&#x2F;是否为临时节点，只要不是0x0都是临时节点</span><br><span class="line">dataLength &#x3D; 3         &#x2F;&#x2F;数据长度 </span><br><span class="line">numChildren &#x3D; 2        &#x2F;&#x2F;子节点数</span><br></pre></td></tr></table></figure>
+
+<h3 id="Curator-API"><a href="#Curator-API" class="headerlink" title="Curator API"></a>Curator API</h3><h4 id="简要介绍"><a href="#简要介绍" class="headerlink" title="简要介绍"></a>简要介绍</h4><p>ZooKeeper本身也有一套API，不过依旧不能解决watch一次性的一类问题，不太好用。业内用的更多是Curator API，它提供一套Java类库，可以更容易的使用ZooKeeper。Curator提供了三个组件。 Curator client用来替代ZOoKeeper提供的类， 它封装了底层的管理并提供了一些有用的工具。Curator framework提供了高级的API来简化ZooKeeper的使用。它增加了很多基于ZooKeeper的特性，帮助管理ZooKeeper的连接以及重试操作。Curator Recipes提供了使用ZooKeeper的一些通用的技巧（方法）。 除此之外， Curator Test提供了基于ZooKeeper的单元测试工具，用的最多就是Curator framework和Curator Recipes。</p>
+<h4 id="版本选择"><a href="#版本选择" class="headerlink" title="版本选择"></a>版本选择</h4><p>建议大家直接看<a href="https://curator.apache.org/zk-compatibility.html" target="_blank" rel="noopener">官网版本选择</a>,不要看其他人写的，以官网为准。</p>
+<h4 id="maven管理"><a href="#maven管理" class="headerlink" title="maven管理"></a>maven管理</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">    &lt;properties&gt;</span><br><span class="line">        &lt;zk.version&gt;3.4.5-cdh5.15.1&lt;&#x2F;zk.version&gt;</span><br><span class="line">        &lt;curator.version&gt;4.0.0&lt;&#x2F;curator.version&gt;</span><br><span class="line">    &lt;&#x2F;properties&gt;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">        &lt;!--zk和curator--&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.zookeeper&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;zookeeper&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;zk.version&#125;&lt;&#x2F;version&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.curator&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;curator-framework&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;curator.version&#125;&lt;&#x2F;version&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.curator&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;curator-recipes&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;curator.version&#125;&lt;&#x2F;version&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建CuratorFramework"><a href="#创建CuratorFramework" class="headerlink" title="创建CuratorFramework"></a>创建CuratorFramework</h4><p>Curator使用CuratorFramework来连接Zookeeper操作，一个集群只需要一个实例，官方推荐以下方式来创建：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RetryPolicy retryPolicy &#x3D; new ExponentialBackoffRetry(1000, 3)</span><br><span class="line">CuratorFramework client &#x3D; CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy);</span><br><span class="line">client.start();</span><br></pre></td></tr></table></figure>
+<p>然而你看源码就知道它是包装了CuratorFrameworkFactory.builder()方法，所以也可以用下列方式创建：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RetryPolicy retryPolicy &#x3D; new ExponentialBackoffRetry(1000, 3);</span><br><span class="line">CuratorFramework client &#x3D; CuratorFrameworkFactory.builder()</span><br><span class="line">                .connectString(&quot;hadoop001:2181&quot;)</span><br><span class="line">                .sessionTimeoutMs(10000)</span><br><span class="line">                .connectionTimeoutMs(1000)</span><br><span class="line">                .retryPolicy(retryPolicy)</span><br><span class="line">                .build();</span><br><span class="line">        client.start();</span><br></pre></td></tr></table></figure>
+
+<h4 id="常用的CuratorFramework方法"><a href="#常用的CuratorFramework方法" class="headerlink" title="常用的CuratorFramework方法"></a>常用的CuratorFramework方法</h4><table>
+<thead>
+<tr>
+<th align="center">方法名</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">create()</td>
+<td align="center">开始创建操作， 可以调用额外的方法(比如方式mode 或者后台执行background) 并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+<tr>
+<td align="center">delete()</td>
+<td align="center">开始删除操作. 可以调用额外的方法(版本或者后台处理version or background)并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+<tr>
+<td align="center">checkExists()</td>
+<td align="center">开始检查ZNode是否存在的操作. 可以调用额外的方法(监控或者后台处理)并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+<tr>
+<td align="center">getData()</td>
+<td align="center">开始获得ZNode节点数据的操作. 可以调用额外的方法(监控、后台处理或者获取状态watch, background or get stat) 并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+<tr>
+<td align="center">setData()</td>
+<td align="center">开始设置ZNode节点数据的操作. 可以调用额外的方法(版本或者后台处理) 并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+<tr>
+<td align="center">getChildren()</td>
+<td align="center">开始获得ZNode的子节点列表。 以调用额外的方法(监控、后台处理或者获取状态watch, background or get stat) 并在最后调用forPath()指定要操作的ZNode</td>
+</tr>
+</tbody></table>
+<h4 id="Caches-watch"><a href="#Caches-watch" class="headerlink" title="Caches(watch)"></a>Caches(watch)</h4><p>我们可以使用Curator的Caches来监控节点和子节点。<br>Path Cache 用来监控一个节点的子节点（节点的path）。不管是子节点的添加，更新或者删除，Path Cache会改自己的状态，包含这些子节点，子节点数据，子节点状态。<br>Node Cache用来监听节点，节点的数据被修改或者节点被删除，Node Cache会改变状态，包含当前的数据（或者如果节点被删除，为null）。<br>Tree Cache会监听zkpath下所有子节点，响应更新，创建，删除事件，下拉数据等，你可以注册一个监听器，当发生时会收到通知。<br>具体代码直接看<a href="https://www.cnblogs.com/crazymakercircle/p/10228385.html" target="_blank" rel="noopener">Zookeeper Curator 事件监听</a>。</p>
+<h4 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.curator.RetryPolicy;</span><br><span class="line">import org.apache.curator.framework.CuratorFramework;</span><br><span class="line">import org.apache.curator.framework.CuratorFrameworkFactory;</span><br><span class="line"></span><br><span class="line">import org.apache.curator.framework.recipes.cache.ChildData;</span><br><span class="line">import org.apache.curator.framework.recipes.cache.TreeCache;</span><br><span class="line">import org.apache.curator.framework.recipes.cache.TreeCacheListener;</span><br><span class="line">import org.apache.curator.retry.ExponentialBackoffRetry;</span><br><span class="line">import org.apache.zookeeper.CreateMode;</span><br><span class="line">import org.apache.zookeeper.data.Stat;</span><br><span class="line">import org.slf4j.Logger;</span><br><span class="line">import org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line">import java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line">public class ZookeeperCuratorApp &#123;</span><br><span class="line">    private static Logger logger &#x3D; LoggerFactory.getLogger(ZookeeperCuratorApp.class);</span><br><span class="line">    private static CuratorFramework client &#x3D; null;</span><br><span class="line">    private static CountDownLatch connected &#x3D; new CountDownLatch(1);</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        init();</span><br><span class="line">        System.out.println(&quot;客户端状态：&quot; + client.getState());</span><br><span class="line">        String path &#x3D; &quot;&#x2F;ruozedata&quot;;</span><br><span class="line">        ZnodeWatcher(path);</span><br><span class="line">        clean();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void ZnodeWatcher(String path) throws Exception &#123;</span><br><span class="line">        TreeCache treeCache &#x3D; new TreeCache(client, path);</span><br><span class="line">        TreeCacheListener listener &#x3D; (curatorFramework, treeCacheEvent) -&gt; &#123;</span><br><span class="line">            ChildData data &#x3D; treeCacheEvent.getData();</span><br><span class="line">            if (data &#x3D;&#x3D; null) &#123;</span><br><span class="line">                logger.warn(&quot;节点不存在&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            switch (treeCacheEvent.getType()) &#123;</span><br><span class="line">                case NODE_ADDED:</span><br><span class="line">                    logger.warn(&quot;节点增加,path&#x3D;&#123;&#125;,data&#x3D;&#123;&#125;,stat&#x3D;&#123;&#125;&quot;, data.getPath(), new String(data.getData())</span><br><span class="line">                            , &quot;[version:&quot; + data.getStat().getVersion() + &quot;\t&quot; + &quot;ephemeralOwner:&quot; + data.getStat().getEphemeralOwner() + &quot;\t&quot; + &quot;numberChildren:&quot; + data.getStat().getNumChildren() + &quot;]&quot;);</span><br><span class="line">                    break;</span><br><span class="line">                case NODE_UPDATED:</span><br><span class="line">                    logger.warn(&quot;节点修改,path&#x3D;&#123;&#125;,data&#x3D;&#123;&#125;,stat&#x3D;&#123;&#125;&quot;, data.getPath(), new String(data.getData())</span><br><span class="line">                            , &quot;[version:&quot; + data.getStat().getVersion() + &quot;\t&quot; + &quot;ephemeralOwner:&quot; + data.getStat().getEphemeralOwner() + &quot;\t&quot; + &quot;numberChildren:&quot; + data.getStat().getNumChildren() + &quot;]&quot;);</span><br><span class="line">                    break;</span><br><span class="line">                case NODE_REMOVED:</span><br><span class="line">                    logger.warn(&quot;节点删除,path&#x3D;&#123;&#125;,data&#x3D;&#123;&#125;,stat&#x3D;&#123;&#125;&quot;, data.getPath(), new String(data.getData())</span><br><span class="line">                            , &quot;[version:&quot; + data.getStat().getVersion() + &quot;\t&quot; + &quot;ephemeralOwner:&quot; + data.getStat().getEphemeralOwner() + &quot;\t&quot; + &quot;numberChildren:&quot; + data.getStat().getNumChildren() + &quot;]&quot;);</span><br><span class="line">                    break;</span><br><span class="line">                default:</span><br><span class="line">                    break;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        treeCache.getListenable().addListener(listener);</span><br><span class="line">        treeCache.start();</span><br><span class="line">        connected.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;删除节点（以及子节点）</span><br><span class="line">    private static void deleteZnode() throws Exception &#123;</span><br><span class="line">        client.delete().deletingChildrenIfNeeded().forPath(&quot;&#x2F;ruozedata&quot;);</span><br><span class="line">        &#x2F;&#x2F;强制删除，在网络不好情况下可以使用</span><br><span class="line">        client.delete().guaranteed().forPath(&quot;&#x2F;tmp&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;得到节点数据</span><br><span class="line">    private static void getZoneData() throws Exception &#123;</span><br><span class="line">        byte[] bytes &#x3D; client.getData().forPath(&quot;&#x2F;ruozedata&#x2F;hadoop&quot;);</span><br><span class="line">        System.out.println(new String(bytes));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;修改节点数据</span><br><span class="line">    private static void setZnodeData() throws Exception &#123;</span><br><span class="line">        &#x2F;&#x2F;默认最新版本</span><br><span class="line">        Stat stat &#x3D; client.setData().forPath(&quot;&#x2F;ruozedata&#x2F;hadoop&quot;, &quot;abcd&quot;.getBytes());</span><br><span class="line">        &#x2F;&#x2F;传入版本号，很有可能报错</span><br><span class="line">&#x2F;&#x2F;        Stat stat &#x3D; client.setData().withVersion(1).forPath(&quot;&#x2F;ruozedata&#x2F;hadoop&quot;, &quot;abcd&quot;.getBytes());</span><br><span class="line">        System.out.println(&quot;version&#x3D; &quot; + stat.getVersion() + &quot;\t&quot; + &quot;ephemeralOwner&#x3D; &quot; + stat.getEphemeralOwner() + &quot;\t&quot; + &quot;numberChildren&#x3D; &quot; + stat.getNumChildren());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;递归创建永久节点</span><br><span class="line">    private static void createZnode() throws Exception &#123;</span><br><span class="line">        client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(&quot;&#x2F;ruozedata&#x2F;hadoop&quot;, &quot;123&quot;.getBytes());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void clean() &#123;</span><br><span class="line">        client.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void init() &#123;</span><br><span class="line">        RetryPolicy retryPolicy &#x3D; new ExponentialBackoffRetry(1000, 3);</span><br><span class="line">&#x2F;&#x2F;        client &#x3D; CuratorFrameworkFactory.newClient(&quot;hadoop001:2181&quot;, 5000, 1000, retryPolicy);</span><br><span class="line">        client &#x3D; CuratorFrameworkFactory.builder()</span><br><span class="line">                .connectString(&quot;hadoop001:2181&quot;)</span><br><span class="line">                .sessionTimeoutMs(10000)</span><br><span class="line">                .connectionTimeoutMs(1000)</span><br><span class="line">                .retryPolicy(retryPolicy)</span><br><span class="line">                .build();</span><br><span class="line">        client.start();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a href="http://ifeve.com/zookeeper-curato-framework/" target="_blank" rel="noopener">跟着实例学习ZooKeeper的用法： Curator框架应用</a><br><br><a href="https://www.cnblogs.com/crazymakercircle/p/10228385.html" target="_blank" rel="noopener">Zookeeper Curator 事件监听</a><br><br><a href="https://carryingcoder.com/2017/11/13/Curator-Recipes-Caches%EF%BC%88%E4%BA%94%EF%BC%89/" target="_blank" rel="noopener">Curator-Recipes-Caches</a><br></p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" data-id="ckbai4hy0002i7oudeimi5ft8" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E5%88%9D%E6%AD%A5%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            HBase生产实践之初步介绍
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">记一次Zookeeper集群无法正常启动分析过程</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

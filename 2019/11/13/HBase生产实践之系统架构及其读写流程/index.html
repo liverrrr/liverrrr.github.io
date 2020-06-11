@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HBase生产实践之系统架构及其读写流程 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HBase生产实践之系统架构及其读写流程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HBase生产实践之系统架构及其读写流程
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2019-11-13T08:18:50.000Z" itemprop="datePublished">2019-11-13</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/HBase/">HBase</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：主要简要介绍了HBase架构以及读写流程</p>
+<a id="more"></a>
+<h3 id="系统架构"><a href="#系统架构" class="headerlink" title="系统架构"></a>系统架构</h3><p><img src="/images/HBase%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="HBase架构图"></p>
+<ul>
+<li><p>HMaster</p>
+<ol>
+<li>负责HBase的table region的管理以及rs的region的负载均衡</li>
+<li>负责region的分裂以及分配分裂后的region</li>
+<li>当rs挂的时候region的迁移</li>
+<li>支持HA，也就是说同时可以有多个HMaster进行运行，但是只有1个处于active状态；如果处于active的节点失效了，挂掉了，其它的HMaster节点就会选举出一个active节点来接管整个HBase集群</li>
+</ol>
+</li>
+<li><p>HRegionServer</p>
+<ol>
+<li>负责数据的路由、数据读写和数据的持久化</li>
+<li>与DN部署在同一节点</li>
+</ol>
+</li>
+<li><p>ZK</p>
+<ol>
+<li>存储meta表所在的RS节点和HMaster地址</li>
+<li>RS主动向ZK注册，使得HMater可以随时感知RS的健康状态</li>
+</ol>
+</li>
+<li><p>HLog <br><br>Write Ahead Log，在每次写入操作，会先写一份数据到HLog文件中</p>
+</li>
+<li><p>BlockCache <br><br>一个RS只有一个BlockCache，用来作于读缓存，提高读的性能</p>
+</li>
+<li><p>MemStore <br><br>主要用作写缓存，当超过一定阈值flush成为一个StoreFile</p>
+</li>
+<li><p>StoreFile <br><br>StoreFile底层是以HFile的格式保存，存储在HDFS上。当storefile文件的数量增长到一定阈值后，系统会进行合并（minor/major compaction），在合并过程中会进行版本合并和删除工作（majar），形成更大的storefile</p>
+</li>
+</ul>
+<h3 id="写流程"><a href="#写流程" class="headerlink" title="写流程"></a>写流程</h3><ol>
+<li>向zk中的/hbase/meta-region-server，获取hbase:meta表所在的RS节点</li>
+<li>向RS节点获取hbase:meta内容，根据Rowkey对比，找到对应的RS节点和Region</li>
+<li>将请求发送给对应的RS节点， 先写HLog，再写对应的region列族的store的memstore</li>
+<li>memstore容量超过阈值，会异步flush，将内存数据写入文件，为storefile（hfile）<br><img src="/images/HBase%E5%86%99%E6%B5%81%E7%A8%8B.png" alt="HBase写流程"></li>
+</ol>
+<h3 id="读流程"><a href="#读流程" class="headerlink" title="读流程"></a>读流程</h3><ol>
+<li>向zk中的/hbase/meta-region-server，获取hbase:meta表所在的RS节点</li>
+<li>向RS节点获取hbase:meta内容，根据Rowkey对比，找到对应的RS节点和Region</li>
+<li>将请求进行封装成scanner，发送给目标的RS节点进行处理，先到memstore中查数据，查不到再去blockcache查询，再查不到就到HFile文件读取数据<br><img src="/images/HBase%E8%AF%BB%E6%B5%81%E7%A8%8B.png" alt="HBase读流程"></li>
+</ol>
+<h3 id="MemStore-Flush触发条件-CDH"><a href="#MemStore-Flush触发条件-CDH" class="headerlink" title="MemStore Flush触发条件(CDH)"></a>MemStore Flush触发条件(CDH)</h3><p>HBase会在如下几种情况下触发flush操作，需要注意的是MemStore的最小flush单元是HRegion而不是单个MemStore。可想而知，如果一个HRegion中Memstore过多，每次flush的开销必然会很大，因此我们也建议在进行表设计的时候尽量减少ColumnFamily的个数，一般来说是3个</p>
+<h4 id="memstore级别"><a href="#memstore级别" class="headerlink" title="memstore级别"></a>memstore级别</h4><p>当region的任意一个memstore的size ，达到hbase.hregion.memstore.flush.size默认的128M就会flush <br><br><strong>建议以128倍数提高此参数，例如512</strong></p>
+<h4 id="region级别"><a href="#region级别" class="headerlink" title="region级别"></a>region级别</h4><p>当region所有的memstore的size和达到hbase.hregion.memstore.block.multipiler(默认2) * hbase.hregion.memstore.flush.size就会触发flush <br></p>
+<h4 id="regionserver级别"><a href="#regionserver级别" class="headerlink" title="regionserver级别"></a>regionserver级别</h4><ul>
+<li>当regionserver的所有的memstore的size之和，超过低水位线，RS强制flush,先从memstore最大的region开始，以此类推，直到总的memstore大小下降到低水位线。<br></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Java Heap Size of HBase RegionServer in Bytes</span><br><span class="line">RS使用的总堆内存大小，默认为50M，需要提高</span><br><span class="line">hbase.regionserver.global.memstore.size&#x3D;hbase.regionserver.global.memstore.upperLimit&#x3D;0.4</span><br><span class="line">每个RS的memstore使用的默认情况下最大为 50M * 0.4 &#x3D;20M </span><br><span class="line">hbase.regionserver.global.memstore.size.lower.limit&#x3D;hbase.regionserver.global.memstore.lowerLimit&#x3D;0.95</span><br><span class="line">低水位线默认情况下是 50M * 0.4 &#x3D; 20M * 0.95 &#x3D; 19M</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果此时继续繁忙写，导致regionserver就会阻塞读写请求，并且强制flush,直到总的memstore大小下降到低水位线</li>
+</ul>
+<h4 id="HLog级别"><a href="#HLog级别" class="headerlink" title="HLog级别"></a>HLog级别</h4><p>当一个Region Server中HLog数量达到上限，系统会选取最早的一个HLog对应的一个或多个Region进行flush，参数hbase.regionserver.maxlogs默认32，也就是达到32 * 128M HLog就会flush到磁盘，一般不用调整</p>
+<h4 id="定期级别"><a href="#定期级别" class="headerlink" title="定期级别"></a>定期级别</h4><p>默认周期为1小时，确保Memstore不会长时间没有持久化</p>
+<h4 id="手动级别"><a href="#手动级别" class="headerlink" title="手动级别"></a>手动级别</h4><p>用户可以通过shell命令flush ‘tablename’或者flush ‘region name’分别对一个表或者一个Region进行flush。</p>
+<h3 id="Memstore-Flush对业务读写的影响"><a href="#Memstore-Flush对业务读写的影响" class="headerlink" title="Memstore Flush对业务读写的影响"></a>Memstore Flush对业务读写的影响</h3><h4 id="影响甚微"><a href="#影响甚微" class="headerlink" title="影响甚微"></a>影响甚微</h4><p>正常情况下，大部分Memstore Flush操作都不会对业务读写产生太大影响，比如这几种场景：HBase定期刷新Memstore、手动执行flush操作、触发Memstore级别限制、触发HLog数量限制以及触发Region级别限制等，这几种场景只会阻塞对应Region上的写请求，阻塞时间很短，毫秒级别。</p>
+<h4 id="影响较大"><a href="#影响较大" class="headerlink" title="影响较大"></a>影响较大</h4><p>一旦触发Region Server级别限制导致flush，就会对用户请求产生较大的影响。会阻塞所有落在该Region Server上的更新操作，阻塞时间很长，甚至可以达到分钟级别。</p>
+<h3 id="合并-Compaction"><a href="#合并-Compaction" class="headerlink" title="合并 Compaction"></a>合并 Compaction</h3><p>flush将memstore数据形成一个hfile(storefile),hdfs上会形成很多hfile，对读请求不是很友好，所以设计上需要去合并（小文件合并）。</p>
+<ul>
+<li>Minor Compaction是指选取一些小的、相邻的StoreFile将他们合并成一个更大的StoreFile</li>
+<li>Major Compaction是指将所有的StoreFile合并成一个StoreFile，这个过程还会清理三类无意义数据：被删除的数据、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此线上业务都会将关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。</li>
+</ul>
+<h4 id="触发条件"><a href="#触发条件" class="headerlink" title="触发条件"></a>触发条件</h4><ol>
+<li>memstore flush之后，都要对当前的store的文件数量进行判断，一旦大于hbase.hstore.compactionThreshold =3 ，就触发合并操作</li>
+<li>后台线程周期性检查：后台线程CompactionChecker定期触发检查是否需要执行compaction，检查周期为：hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier。和flush不同的是，该线程优先检查文件数是否大于，一旦大于就会触发compaction。如果不满足，它会接着检查是否满足major compaction条件，简单来说，如果当前store中hfile的最早更新时间早于某个值mcTime，就会触发major compaction，HBase预想通过这种机制定期删除过期数据。上文mcTime是一个浮动值，浮动区间默认为［7-7 * 0.5，7+7 * 0.5］，其中7为hbase.hregion.majorcompaction，0.5为hbase.hregion.majorcompaction.jitter，可见默认在7天左右就会执行一次major compaction。<strong>用户如果想禁用major compaction，只需要将参数hbase.hregion.majorcompaction设为0</strong></li>
+<li>手动触发，major_compact</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckbai4hx500087oud3syj8ukp" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HBase/" rel="tag">HBase</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8BRowKey%E8%AE%BE%E8%AE%A1/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            HBase生产实践之RowKey设计
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E5%88%9D%E6%AD%A5%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">HBase生产实践之初步介绍</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

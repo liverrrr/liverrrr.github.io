@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    HBase生产实践之RowKey设计 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-HBase生产实践之RowKey设计" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      HBase生产实践之RowKey设计
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8BRowKey%E8%AE%BE%E8%AE%A1/" class="article-date">
+  <time datetime="2019-11-13T08:19:30.000Z" itemprop="datePublished">2019-11-13</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/HBase/">HBase</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：结合案例详细介绍RowKey的设计</p>
+<a id="more"></a>
+<h3 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h3><ul>
+<li>长度原则 <br><br>RowKey不应该超过16字节，因为若是过长再以KV形式存储，对于HFile和MemStore来说会极大的占用存储空间</li>
+<li>唯一原则 <br><br>保证RowKey的唯一性，若向HBase中同一张表插入相同RowKey的数据，则原先存在的数据会被新的数据覆盖</li>
+<li>排序原则 <br><br>RowKey是按照字典序排序的</li>
+<li>散列原则 <br><br>设计的RowKey应均匀的分布在各个HBase节点上</li>
+</ul>
+<h3 id="如何避免热点"><a href="#如何避免热点" class="headerlink" title="如何避免热点"></a>如何避免热点</h3><ul>
+<li><p>“加盐”(随机数) <br><br>在原RowKey的前面添加固定长度的随机数，也就是给RowKey分配一个随机前缀使它和之间的RowKey的开头不同。随机数能保障数据在所有Regions间的负载均衡。<strong>缺点就是因为添加的是随机数，基于原来的rowkey查询是无法知道这个随机数是什么，那么查询需要在各个可能的region查找，增加了读的开销，而且第一个region分片必然为空，如果你的资源不多这个值得考虑。但是这个缺点可以用Phoenix像MySQL那样来制造二级索引，有兴趣了解一下Phoenix。</strong></p>
+</li>
+<li><p>hash <br></p>
+</li>
+</ul>
+<p><strong>一般使用将hash(rk)的全部或者只取hash值的长度前4位+rk组成新的RowKey</strong>，不像slat一样，会将upset或delete数据分不到一个region，也可以使得负载分散到整个集群，<strong>但是这种方法和slat一样打破了数据的自然顺序</strong></p>
+<ul>
+<li>reverse <br></li>
+</ul>
+<p><strong>原生数据rk在尾部出现良好的随机数</strong>，比如手机号码等，就可以考虑翻转使得随机分布， 但是也是打破了数据的自然顺序</p>
+<h3 id="字段选择"><a href="#字段选择" class="headerlink" title="字段选择"></a>字段选择</h3><p>一定取决于你的最大的需求，结合具体的查询条件，高频率的尽可能的放到RK里面，现有如下两列数据以及四种需求，如何设计RowKey？ <br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">userid  orderno  skuname skuprice skunum skusum      ordercretime</span><br><span class="line">jepson  0001      西瓜    10       5      50        2019-07-07 12:00:00</span><br><span class="line">jepson  0002      南瓜    10       50     500       2019-07-08 12:00:00</span><br><span class="line"></span><br><span class="line"># 需求</span><br><span class="line">1)根据用户查询订单最新记录</span><br><span class="line">where userid&#x3D;jepson order by ordercretime desc limit 1</span><br><span class="line">2)根据用户查询某个时间段xxx,xxx的订单记录 </span><br><span class="line">where userid&#x3D;jepson and (ordercretime&gt;&#x3D;&#39;xxx&#39; and ordercretime&lt;&#x3D;&#39;xxxx&#39;)</span><br><span class="line">3)根据时间段查询订单记录</span><br><span class="line">where (ordercretime&gt;&#x3D;&#39;xxx&#39; and ordercretime&lt;&#x3D;&#39;xxxx&#39;)</span><br><span class="line">4)根据用户买了西瓜的订单记录</span><br><span class="line">where userid&#x3D;jepson and skuname&#x3D;&#39;西瓜&#39;</span><br></pre></td></tr></table></figure>
+<p>根据以上原则及其方法，<strong>RowKey=hash(userid).substring(0, 4)+userid+ (Long.Max_Value - timestamp)，但是要注意 (Long.Max_Value - timestamp)要固定长度用0补齐</strong></p>
+<h3 id="调优"><a href="#调优" class="headerlink" title="调优"></a>调优</h3><p>1个region memstore额外的开销为hbase.hregion.memstore.mslab.chunksize=2m，如果你的一张表有20个region，那么额外开销为40M，一百张表就是100 * 40M = 4G。所以建议小表region为1，中表region为5，大表为20，1台rs节点的region 是100-200个。</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8BRowKey%E8%AE%BE%E8%AE%A1/" data-id="ckbai4hx400067oudhr9h76eo" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HBase/" rel="tag">HBase</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+    
+      <a href="/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">HBase生产实践之系统架构及其读写流程</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

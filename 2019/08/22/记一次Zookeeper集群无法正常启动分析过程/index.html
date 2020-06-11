@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    记一次Zookeeper集群无法正常启动分析过程 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-记一次Zookeeper集群无法正常启动分析过程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      记一次Zookeeper集群无法正常启动分析过程
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/" class="article-date">
+  <time datetime="2019-08-22T07:59:56.000Z" itemprop="datePublished">2019-08-22</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：记一次Zookeeper集群无法正常启动分析过程</p>
+<a id="more"></a>
+<h2 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h2><p>此次案例由三节点组成的ZK集群演示，由于三节点都已配SSH免密码登陆，我直接编写以下脚本以便在一台上即可启动ZK集群。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash -x</span><br><span class="line">ssh ruozedata001 &quot;$ZOOKEEPER_HOME&#x2F;bin&#x2F;zkServer.sh start&quot;</span><br><span class="line">ssh ruozedata002 &quot;$ZOOKEEPER_HOME&#x2F;bin&#x2F;zkServer.sh start&quot;</span><br><span class="line">ssh ruozedata003 &quot;$ZOOKEEPER_HOME&#x2F;bin&#x2F;zkServer.sh start&quot;</span><br></pre></td></tr></table></figure>
+<p>额外说明的是三台机器都创建了hadoop用户且该用户的个人环境配置了$ZOOKEEPER_HOME，而JAVA_HOME却配置在全局环境中。</p>
+<h2 id="案例重现"><a href="#案例重现" class="headerlink" title="案例重现"></a>案例重现</h2><h3 id="初次启动ZK集群"><a href="#初次启动ZK集群" class="headerlink" title="初次启动ZK集群"></a>初次启动ZK集群</h3><p>我登陆ruozedata001节点，并切换到hadoop用户，进入script目录，执行上述脚本，发现ZK集群并没启动。以下是我操作日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[root@ruozedata001 ~]# su - hadoop</span><br><span class="line">Last login: Tue Aug 20 20:51:24 CST 2019 on pts&#x2F;0</span><br><span class="line">[hadoop@ruozedata001 ~]$ cd script</span><br><span class="line">[hadoop@ruozedata001 script]$ ll</span><br><span class="line">-rwxr--r-- 1 hadoop hadoop  454 Aug 21 22:06 jps.sh</span><br><span class="line">-rwxr--r-- 1 hadoop hadoop  448 Aug 22 00:04 start_zk.sh</span><br><span class="line">[hadoop@ruozedata001 script]$ .&#x2F;start_zk.sh</span><br><span class="line">+ ssh ruozedata001 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ ssh ruozedata002 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ ssh ruozedata003 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ exit 0</span><br><span class="line"># 事实并没启动</span><br><span class="line">[hadoop@ruozedata001 script]$ jps</span><br><span class="line">1503 Jps</span><br><span class="line">[hadoop@ruozedata001 script]$ ps -ef | grep zookeeper</span><br><span class="line">hadoop    1516  1239  0 23:27 pts&#x2F;0    00:00:00 grep --color&#x3D;auto zookeeper</span><br></pre></td></tr></table></figure>
+
+<h3 id="寻找并查看日志"><a href="#寻找并查看日志" class="headerlink" title="寻找并查看日志"></a>寻找并查看日志</h3><h4 id="查看配置文件中是否配置日志路径"><a href="#查看配置文件中是否配置日志路径" class="headerlink" title="查看配置文件中是否配置日志路径"></a>查看配置文件中是否配置日志路径</h4><p>到zookeeper安装目录的conf中，查看zoo.cfg，发现里面只有数据存放路径。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 script]$ cd ~&#x2F;app&#x2F;zookeeper</span><br><span class="line">[hadoop@ruozedata001 zookeeper]$ ll</span><br><span class="line">total 1552</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Feb 20  2014 bin</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   82446 Feb 20  2014 build.xml</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   80776 Feb 20  2014 CHANGES.txt</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Aug 19 15:08 conf</span><br><span class="line">drwxr-xr-x 10 hadoop hadoop    4096 Feb 20  2014 contrib</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Feb 20  2014 dist-maven</span><br><span class="line">drwxr-xr-x  6 hadoop hadoop    4096 Feb 20  2014 docs</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1953 Feb 20  2014 ivysettings.xml</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    3375 Feb 20  2014 ivy.xml</span><br><span class="line">drwxr-xr-x  4 hadoop hadoop    4096 Feb 20  2014 lib</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   11358 Feb 20  2014 LICENSE.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop     170 Feb 20  2014 NOTICE.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1770 Feb 20  2014 README_packaging.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1585 Feb 20  2014 README.txt</span><br><span class="line">drwxr-xr-x  5 hadoop hadoop    4096 Feb 20  2014 recipes</span><br><span class="line">drwxr-xr-x  8 hadoop hadoop    4096 Feb 20  2014 src</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop 1340305 Feb 20  2014 zookeeper-3.4.6.jar</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop     836 Feb 20  2014 zookeeper-3.4.6.jar.asc</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop      33 Feb 20  2014 zookeeper-3.4.6.jar.md5</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop      41 Feb 20  2014 zookeeper-3.4.6.jar.sha1</span><br><span class="line">[hadoop@ruozedata001 zookeeper]$ cd conf&#x2F;</span><br><span class="line">[hadoop@ruozedata001 conf]$ ll</span><br><span class="line">total 16</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop  535 Feb 20  2014 configuration.xsl</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 2161 Feb 20  2014 log4j.properties</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 1032 Aug 19 15:08 zoo.cfg</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop  922 Feb 20  2014 zoo_sample.cfg</span><br><span class="line">[hadoop@ruozedata001 conf]$ vim zoo.cfg</span><br><span class="line"># The number of milliseconds of each tick</span><br><span class="line">tickTime&#x3D;2000</span><br><span class="line"># The number of ticks that the initial </span><br><span class="line"># synchronization phase can take</span><br><span class="line">initLimit&#x3D;10</span><br><span class="line"># The number of ticks that can pass between </span><br><span class="line"># sending a request and getting an acknowledgement</span><br><span class="line">syncLimit&#x3D;5</span><br><span class="line"># the directory where the snapshot is stored.</span><br><span class="line"># do not use &#x2F;tmp for storage, &#x2F;tmp here is just </span><br><span class="line"># example sakes.</span><br><span class="line">dataDir&#x3D;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;zookeeper</span><br><span class="line"># the port at which the clients will connect</span><br><span class="line">clientPort&#x3D;2181</span><br><span class="line"># the maximum number of client connections.</span><br><span class="line"># increase this if you need to handle more clients</span><br><span class="line">#maxClientCnxns&#x3D;60</span><br><span class="line">#</span><br><span class="line"># Be sure to read the maintenance section of the </span><br><span class="line"># administrator guide before turning on autopurge.</span><br><span class="line">#</span><br><span class="line"># http:&#x2F;&#x2F;zookeeper.apache.org&#x2F;doc&#x2F;current&#x2F;zookeeperAdmin.html#sc_maintenance</span><br><span class="line">#</span><br><span class="line"># The number of snapshots to retain in dataDir</span><br><span class="line">#autopurge.snapRetainCount&#x3D;3</span><br><span class="line"># Purge task interval in hours</span><br><span class="line"># Set to &quot;0&quot; to disable auto purge feature</span><br><span class="line">#autopurge.purgeInterval&#x3D;1</span><br><span class="line"></span><br><span class="line">server.1&#x3D;ruozedata001:2888:3888</span><br><span class="line">server.2&#x3D;ruozedata002:2888:3888</span><br><span class="line">server.3&#x3D;ruozedata003:2888:3888</span><br></pre></td></tr></table></figure>
+
+<p>之后发现同路径下有log4j.properties，查看之后发现日志存放路径配置是当前路径，日志名称为zookeeper.log。<strong>这个当前路径就很迷，直接在/home/hadoop路径下搜索log4j.properties，发现啥也没有，然后扩大搜索路径，直接在根目录下搜索，还是发现啥都没有。不得不说有点坑爹！！！</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 conf]$ vim log4j.properties </span><br><span class="line"># Define some default values that can be overridden by system properties</span><br><span class="line">zookeeper.root.logger&#x3D;INFO, CONSOLE</span><br><span class="line">zookeeper.console.threshold&#x3D;INFO</span><br><span class="line">zookeeper.log.dir&#x3D;.		&lt;-- 当前路径</span><br><span class="line">zookeeper.log.file&#x3D;zookeeper.log   &lt;-- 日志名称</span><br><span class="line">zookeeper.log.threshold&#x3D;DEBUG</span><br><span class="line">zookeeper.tracelog.dir&#x3D;.    </span><br><span class="line">zookeeper.tracelog.file&#x3D;zookeeper_trace.log</span><br><span class="line">....</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 conf]$ find &#x2F;home&#x2F;hadoop -name &#39;zookeeper.log&#39;</span><br><span class="line">[hadoop@ruozedata001 conf]$ </span><br><span class="line">[hadoop@ruozedata001 conf]$ exit</span><br><span class="line">logout</span><br><span class="line">[root@ruozedata001 ~]# find &#x2F; -name &#39;zookeeper.log&#39;</span><br><span class="line">[root@ruozedata001 ~]#</span><br></pre></td></tr></table></figure>
+
+<h4 id="在zkServer-sh脚本寻找日志存放路径"><a href="#在zkServer-sh脚本寻找日志存放路径" class="headerlink" title="在zkServer.sh脚本寻找日志存放路径"></a>在zkServer.sh脚本寻找日志存放路径</h4><p>由于zkServer.sh start|stop|status，所以我直接在脚本搜索start，定位在脚本启动部分，往下阅读脚本找到ZOO_LOG_DIR变量。紧接着脚本中搜索ZOO_LOG_DIR=，但是并未找到，于是搜索ZOO_LOG_DIR，发现_ZOO_DAEMON_OUT=”$ZOO_LOG_DIR/zookeeper.out”，这个变量定义。回头查看脚本启动部分也有这个变量，正好是后台将日志发送的位置。这下，直接在根目录下搜索zookeeper.out，原来存放在/home/hadoop目录下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@ruozedata001 ~]# su - hadoop</span><br><span class="line">Last login: Thu Aug 22 22:49:41 CST 2019 on pts&#x2F;0</span><br><span class="line">[hadoop@ruozedata001 ~]$ cd ~&#x2F;app&#x2F;</span><br><span class="line">[hadoop@ruozedata001 app]$ cd zookeeper&#x2F;bin&#x2F;</span><br><span class="line">[hadoop@ruozedata001 bin]$ vim zkServer.sh </span><br><span class="line"></span><br><span class="line"># 在脚本中搜索ZOO_LOG_DIR得到以下</span><br><span class="line">if [ ! -w &quot;$ZOO_LOG_DIR&quot; ] ; then</span><br><span class="line">mkdir -p &quot;$ZOO_LOG_DIR&quot;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">_ZOO_DAEMON_OUT&#x3D;&quot;$ZOO_LOG_DIR&#x2F;zookeeper.out&quot;   &lt;-- _ZOO_DAEMON_OUT这个变量就在下方出现</span><br><span class="line"></span><br><span class="line"># 在脚本中搜索start得到以下</span><br><span class="line">case $1 in</span><br><span class="line">start)</span><br><span class="line">    echo  -n &quot;Starting zookeeper ... &quot;</span><br><span class="line">    # 判断$ZOOPIDFILE变量代表的文件是否存在</span><br><span class="line">    if [ -f &quot;$ZOOPIDFILE&quot; ]; then</span><br><span class="line">      if kill -0 &#96;cat &quot;$ZOOPIDFILE&quot;&#96; &gt; &#x2F;dev&#x2F;null 2&gt;&amp;1; then</span><br><span class="line">         echo $command already running as process &#96;cat &quot;$ZOOPIDFILE&quot;&#96;.</span><br><span class="line">         exit 0</span><br><span class="line">      fi</span><br><span class="line">    fi</span><br><span class="line">    # 真正ZK启动命令，后台运行并将日志放入_ZOO_DAEMON_OUT变量代表的路径下</span><br><span class="line">    nohup &quot;$JAVA&quot; &quot;-Dzookeeper.log.dir&#x3D;$&#123;ZOO_LOG_DIR&#125;&quot; &quot;-Dzookeeper.root.logger&#x3D;$&#123;ZOO_LOG4J_PROP&#125;&quot; \</span><br><span class="line">    -cp &quot;$CLASSPATH&quot; $JVMFLAGS $ZOOMAIN &quot;$ZOOCFG&quot; &gt; &quot;$_ZOO_DAEMON_OUT&quot; 2&gt;&amp;1 &lt; &#x2F;dev&#x2F;null &amp;    &lt;--- 关键</span><br><span class="line">....</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 bin]$ exit</span><br><span class="line">logout</span><br><span class="line">[root@ruozedata001 ~]# find &#x2F; -name &#39;zookeeper.out&#39;</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;zookeeper.out</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题初现开始排查"><a href="#问题初现开始排查" class="headerlink" title="问题初现开始排查"></a>问题初现开始排查</h3><p>终于找到日志，但是打开日志一看我愣住了，哪里窜出来个java目录，说脚本是找不到。一头雾水，还是在zkServer.sh中搜索一下，不出意料没有结果。这个时候，只有从头看脚本咯，我注意到zkServer.sh还执行了zkEnv.sh脚本。那我就到zkEnv.sh中搜索一下吧。结果找到以下代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 ~]$ cd ~&#x2F;app&#x2F;zookeeper&#x2F;bin</span><br><span class="line">[hadoop@ruozedata001 bin]$ vim zkServer.sh </span><br><span class="line">...</span><br><span class="line">if [ -e &quot;$ZOOBIN&#x2F;..&#x2F;libexec&#x2F;zkEnv.sh&quot; ]; then</span><br><span class="line">  . &quot;$ZOOBINDIR&#x2F;..&#x2F;libexec&#x2F;zkEnv.sh&quot;</span><br><span class="line">else</span><br><span class="line">  . &quot;$ZOOBINDIR&#x2F;zkEnv.sh&quot;</span><br><span class="line">fi</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 bin]$ vim zkEnv.sh</span><br><span class="line">...</span><br><span class="line"># 这里判断$JAVA_HOME是否为空</span><br><span class="line">if [ &quot;$JAVA_HOME&quot; !&#x3D; &quot;&quot; ]; then</span><br><span class="line">  JAVA&#x3D;&quot;$JAVA_HOME&#x2F;bin&#x2F;java&quot;</span><br><span class="line">else</span><br><span class="line">  JAVA&#x3D;java</span><br><span class="line">fi</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>所以，<strong>就是脚本运行时$JAVA_HOME为空，但是运行ssh ruozedata001 ‘echo $JAVA_HOME’却是有值的。为了做实验，我创建了一个脚本，里面内容就是echo $JAVA_HOME，然后我再在ssh ruozedata001 ‘sh test.sh’，发现居然JAVA_HOME无法输出了。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 bin]$ which java</span><br><span class="line">&#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45&#x2F;bin&#x2F;java</span><br><span class="line">[hadoop@ruozedata001 bin]$ ssh ruozedata001 &quot;echo $JAVA_HOME&quot;</span><br><span class="line">&#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45</span><br><span class="line">[hadoop@ruozedata001 bin]$ cd ~&#x2F;script&#x2F;</span><br><span class="line">[hadoop@ruozedata001 script]$ cat test.sh </span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">echo $JAVA_HOME</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 script]$ ssh ruozedata001 &quot;sh &#x2F;home&#x2F;hadoop&#x2F;script&#x2F;test.sh&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="解决问题"><a href="#解决问题" class="headerlink" title="解决问题"></a>解决问题</h4><p>经过上网查询之后发现，ssh远程执行脚本时，它不会去执行/etc/profile文件，而会去用户的HOME目录检查.bashrc并加载。<br>所以我只需要在三节点上hadoop用户的.bashrc加入JAVA_HOME就行了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 script]$ vim ~&#x2F;.bashrc </span><br><span class="line"># .bashrc</span><br><span class="line"></span><br><span class="line"># Source global definitions</span><br><span class="line">if [ -f &#x2F;etc&#x2F;bashrc ]; then</span><br><span class="line">        . &#x2F;etc&#x2F;bashrc</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"># Uncomment the following line if you don&#39;t like systemctl&#39;s auto-paging feature:</span><br><span class="line"># export SYSTEMD_PAGER&#x3D;</span><br><span class="line"></span><br><span class="line"># User specific aliases and functions</span><br><span class="line">export JAVA_HOME&#x3D;&#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45</span><br><span class="line">export PATH&#x3D;$JAVA_HOME&#x2F;bin:$PATH</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 script]$ scp &#x2F;home&#x2F;hadoop&#x2F;.bashrc ruozedata002:&#x2F;home&#x2F;hadoop&#x2F;</span><br><span class="line">.bashrc                                                                                                                                                                                                       100%  304   842.0KB&#x2F;s   00:00    </span><br><span class="line">[hadoop@ruozedata001 script]$ scp &#x2F;home&#x2F;hadoop&#x2F;.bashrc ruozedata003:&#x2F;home&#x2F;hadoop&#x2F;</span><br><span class="line">.bashrc</span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 script]$ .&#x2F;start_zk.sh </span><br><span class="line">+ ssh ruozedata001 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ ssh ruozedata002 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ ssh ruozedata003 &#39;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;zkServer.sh start&#39;</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;zookeeper&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">+ exit 0</span><br><span class="line">[hadoop@ruozedata001 script]$ .&#x2F;jps.sh </span><br><span class="line">+ echo &#39;----------ruozedata001 process------------&#39;</span><br><span class="line">----------ruozedata001 process------------</span><br><span class="line">+ ssh ruozedata001 &#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45&#x2F;bin&#x2F;jps</span><br><span class="line">4294 QuorumPeerMain</span><br><span class="line">4333 Jps</span><br><span class="line">+ echo &#39;                                                &#39;</span><br><span class="line">                                                </span><br><span class="line">+ echo &#39;----------ruozedata002 process------------&#39;</span><br><span class="line">----------ruozedata002 process------------</span><br><span class="line">+ ssh ruozedata002 &#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45&#x2F;bin&#x2F;jps</span><br><span class="line">1553 Jps</span><br><span class="line">1517 QuorumPeerMain</span><br><span class="line">+ echo &#39;                                                &#39;</span><br><span class="line">                                                </span><br><span class="line">+ echo &#39;----------ruozedata003 process------------&#39;</span><br><span class="line">----------ruozedata003 process------------</span><br><span class="line">+ ssh ruozedata003 &#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45&#x2F;bin&#x2F;jps</span><br><span class="line">1548 Jps</span><br><span class="line">1518 QuorumPeerMain</span><br><span class="line">+ echo &#39;  </span><br><span class="line"></span><br><span class="line">[hadoop@ruozedata001 script]$ cat jps.sh </span><br><span class="line">#!&#x2F;bin&#x2F;bash -x </span><br><span class="line"></span><br><span class="line">echo &quot;----------ruozedata001 process------------&quot;</span><br><span class="line">ssh ruozedata001 &quot;$JAVA_HOME&#x2F;bin&#x2F;jps&quot;</span><br><span class="line">echo &quot;                                                &quot;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">echo &quot;----------ruozedata002 process------------&quot;</span><br><span class="line">ssh ruozedata002 &quot;$JAVA_HOME&#x2F;bin&#x2F;jps&quot;</span><br><span class="line">echo &quot;                                                &quot;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">echo &quot;----------ruozedata003 process------------&quot;</span><br><span class="line">ssh ruozedata003 &quot;$JAVA_HOME&#x2F;bin&#x2F;jps&quot;</span><br><span class="line">echo &quot;</span><br></pre></td></tr></table></figure>
+
+<p>当然，你也可以将zkEnv.sh的以下部分写死，照样可以运行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@ruozedata001 bin]$ vim zkEnv.sh</span><br><span class="line">...</span><br><span class="line"># 这里判断$JAVA_HOME是否为空</span><br><span class="line">if [ &quot;$JAVA_HOME&quot; !&#x3D; &quot;&quot; ]; then</span><br><span class="line">  JAVA&#x3D;&quot;$JAVA_HOME&#x2F;bin&#x2F;java&quot;</span><br><span class="line">else</span><br><span class="line">  JAVA&#x3D;&#x2F;usr&#x2F;java&#x2F;jdk1.8.0_45&#x2F;bin&#x2F;java   &lt;--- 这里写死</span><br><span class="line">fi</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="参考资料连接"><a href="#参考资料连接" class="headerlink" title="参考资料连接"></a>参考资料连接</h3><p><a href="https://blog.csdn.net/houkepei/article/details/88422510" target="_blank" rel="noopener">解决SSH远程执行命令找不到环境变量的问题</a></p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/" data-id="ckbai4hy800397oudca5l9tw2" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Zookeeper入门
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">MapReduce全局排序以及分区排序</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>
