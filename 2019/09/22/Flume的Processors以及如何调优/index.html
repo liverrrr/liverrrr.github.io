@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Flume之Sink Processors以及如何调优 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Flume的Processors以及如何调优" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Flume之Sink Processors以及如何调优
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/09/22/Flume%E7%9A%84Processors%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E8%B0%83%E4%BC%98/" class="article-date">
+  <time datetime="2019-09-22T03:16:16.000Z" itemprop="datePublished">2019-09-22</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flume/">Flume</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a> 
+<h2 id="Sink-Processors"><a href="#Sink-Processors" class="headerlink" title="Sink Processors"></a>Sink Processors</h2><p>当你的Agent有多个Sink时，Flume提供两种策略：failover和load_balance，下面详细介绍一下两种策略。</p>
+<h3 id="load-balance"><a href="#load-balance" class="headerlink" title="load_balance"></a>load_balance</h3><p>它作用是保持event到下一个agent的负载均衡，内置两种策略：round_robin(轮询)和random(随机)，默认的策略是round_robin。如果配置的某个sink挂掉，它尝试将evnet向其他sink发送，如果配置的sink全挂掉，那么就会报错。<br>示例配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># 声明sources&#x2F;sinks&#x2F;channels</span><br><span class="line">a1.sources &#x3D; r1</span><br><span class="line">a1.sinks &#x3D; k1 k2</span><br><span class="line">a1.channels &#x3D; c1</span><br><span class="line"></span><br><span class="line"># 定义source r1</span><br><span class="line">a1.sources.r1.type &#x3D; netcat</span><br><span class="line">a1.sources.r1.bind &#x3D; ruozedata001</span><br><span class="line">a1.sources.r1.port &#x3D; 44444</span><br><span class="line"></span><br><span class="line"># 定义channel c1</span><br><span class="line">a1.channels.c1.type &#x3D; memory</span><br><span class="line"></span><br><span class="line"># 定义sink k1</span><br><span class="line">a1.sinks.k1.type &#x3D; avro</span><br><span class="line">a1.sinks.k1.hostname &#x3D; ruozedata001</span><br><span class="line">a1.sinks.k1.port &#x3D; 44445</span><br><span class="line"></span><br><span class="line"># 定义sink k2</span><br><span class="line">a1.sinks.k2.type &#x3D; avro</span><br><span class="line">a1.sinks.k2.hostname &#x3D; ruozedata001</span><br><span class="line">a1.sinks.k2.port &#x3D; 44446</span><br><span class="line"></span><br><span class="line"># 定义sink processors 策略是random&#x2F;round_robin</span><br><span class="line">a1.sinkgroups &#x3D; g1</span><br><span class="line">a1.sinkgroups.g1.sinks &#x3D; k1 k2</span><br><span class="line">a1.sinkgroups.g1.processor.type &#x3D; load_balance</span><br><span class="line">a1.sinkgroups.g1.processor.backoff &#x3D; true</span><br><span class="line">a1.sinkgroups.g1.processor.selector &#x3D; random&#x2F;round_robin</span><br><span class="line"></span><br><span class="line">a1.sinks.k1.channel &#x3D; c1</span><br><span class="line">a1.sinks.k2.channel &#x3D; c1</span><br><span class="line">a1.sources.r1.channels &#x3D; c1</span><br></pre></td></tr></table></figure>
+
+<h3 id="failover"><a href="#failover" class="headerlink" title="failover"></a>failover</h3><p>它的作用是保证event会被一个agent接受，也就是容错，它会保持一个优先级的sink队列，<strong>在其中数字越大优先级越高</strong>，当你最高优先级的sink对应的agent挂了，会将evnet转移到优先级第二高的sink。<br>示例配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># 声明sources&#x2F;sinks&#x2F;channels</span><br><span class="line">a1.sources &#x3D; r1</span><br><span class="line">a1.sinks &#x3D; k1 k2</span><br><span class="line">a1.channels &#x3D; c1</span><br><span class="line"></span><br><span class="line"># 定义source r1</span><br><span class="line">a1.sources.r1.type &#x3D; netcat</span><br><span class="line">a1.sources.r1.bind &#x3D; ruozedata001</span><br><span class="line">a1.sources.r1.port &#x3D; 44444</span><br><span class="line"></span><br><span class="line"># 定义channel c1</span><br><span class="line">a1.channels.c1.type &#x3D; memory</span><br><span class="line"></span><br><span class="line"># 定义sink k1</span><br><span class="line">a1.sinks.k1.type &#x3D; avro</span><br><span class="line">a1.sinks.k1.hostname &#x3D; ruozedata001</span><br><span class="line">a1.sinks.k1.port &#x3D; 44445</span><br><span class="line"></span><br><span class="line"># 定义sink k2</span><br><span class="line">a1.sinks.k2.type &#x3D; avro</span><br><span class="line">a1.sinks.k2.hostname &#x3D; ruozedata001</span><br><span class="line">a1.sinks.k2.port &#x3D; 44446</span><br><span class="line"></span><br><span class="line"># 定义sink processors </span><br><span class="line">a1.sinkgroups &#x3D; g1</span><br><span class="line">a1.sinkgroups.g1.sinks &#x3D; k1 k2</span><br><span class="line">a1.sinkgroups.g1.processor.type &#x3D; failover</span><br><span class="line">a1.sinkgroups.g1.processor.priority.k1 &#x3D; 5</span><br><span class="line">a1.sinkgroups.g1.processor.priority.k2 &#x3D; 10</span><br><span class="line"></span><br><span class="line">a1.sinks.k1.channel &#x3D; c1</span><br><span class="line">a1.sinks.k2.channel &#x3D; c1</span><br><span class="line">a1.sources.r1.channels &#x3D; c1</span><br></pre></td></tr></table></figure>
+
+<h2 id="调优"><a href="#调优" class="headerlink" title="调优"></a>调优</h2><p>如何对flume进行调优呢？<br><br>主要是围绕三个核心组件的选型来调优<br><br>我们在<a href="https://liverrrr.fun/archives/flume_first" target="_blank" rel="noopener">初始Flume</a>中就介绍过三个组件常用的类型。</p>
+<h3 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h3><p>因为常用的也就是taildir类型，<strong>默认的batchSize参数为100过小</strong>，它表示一次最大读取到channel的行数，可以根据生产实际数据量来进行调整。<br></p>
+<h3 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h3><p>参数capacity代表最大在channel里存储的evnet数量，参数transactionCapacity代表source或者sink在channel里操作的最大事务数。<br><br>值得注意的是：<strong>设置的batchSize参数要小于等于参数transactionCapacity</strong><br></p>
+<h3 id="Sink"><a href="#Sink" class="headerlink" title="Sink"></a>Sink</h3><p>sink的调参参数也有batchSize，方法也是跟source一样。<br><br>但是sink生产上用得就是hdfs类型，对于此也有三个参数需要调整：<br></p>
+<ol>
+<li>hdfs.rollInterval<br><br>代表等待多少秒hdfs文件滚动，设置为0代表不使用，默认是30秒</li>
+<li>hdfs.rollSize<br><br>代表收集到多少字节的文件滚动，设置为0代表不使用，默认是1024字节</li>
+<li>hdfs.rollCount<br><br>代表收到多少数量的event滚动，设置为0代表不使用，默认是10</li>
+</ol>
+<p>以上三个参数达到任意一条，文件都会滚动。<br><br>如果收集到hdfs上需要压缩的话，则要改动hdfs.fileType和hdfs.codeC    两个参数。</p>
+<h3 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h3><p>在上面提及的failover，也是调优的一部分，提高整个flume工作链的健壮。</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/09/22/Flume%E7%9A%84Processors%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E8%B0%83%E4%BC%98/" data-id="ckbhdlpqa000rc4ud20c6dtjy" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flume/" rel="tag">Flume</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/09/25/Hive%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%E6%B3%A8%E5%86%8C%E6%B0%B8%E4%B9%85UDF/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Hive通过修改源码注册永久UDF
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/09/18/%E5%88%9D%E8%AF%86Flume/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">初识Flume</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

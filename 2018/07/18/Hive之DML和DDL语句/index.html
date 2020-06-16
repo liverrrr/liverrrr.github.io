@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Hive之DML和DDL语句 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Hive之DML和DDL语句" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Hive之DML和DDL语句
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/" class="article-date">
+  <time datetime="2018-07-18T03:32:21.000Z" itemprop="datePublished">2018-07-18</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="creat-database"><a href="#creat-database" class="headerlink" title="creat database"></a>creat database</h3><p>官方语法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span><br><span class="line">[COMMENT database_comment]</span><br><span class="line">[LOCATION hdfs_path]</span><br><span class="line">[WITH DBPROPERTIES (property_name&#x3D;property_value, ...)];</span><br></pre></td></tr></table></figure>
+<p>语法与MySQL建库差不多，只是要注意的是，如果你不指定LOCATION属性，那么当前库将会存储在HDFS上的/user/hive/warehouse/database_name.db，如果你指定了那么库将会存储在你指定的路径。</p>
+<h3 id="drop-database"><a href="#drop-database" class="headerlink" title="drop database"></a>drop database</h3><p>官方语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DROP (DATABASE|SCHEMA) [IF EXISTS] database_name [RESTRICT|CASCADE];</span><br></pre></td></tr></table></figure>
+<p><strong>这里需要注意的是如果你要删除的库中有表的话，默认是不允许删除的，如果必须删除的话，请在语句后加入cascade，但是一定要慎用。</strong></p>
+<h3 id="create-table"><a href="#create-table" class="headerlink" title="create table"></a>create table</h3><p>官方语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name    -- (Note: TEMPORARY available in Hive 0.14.0 and later)</span><br><span class="line">  [(col_name data_type [COMMENT col_comment], ... [constraint_specification])]</span><br><span class="line">  [COMMENT table_comment]</span><br><span class="line">  [LOCATION hdfs_path]</span><br><span class="line">  [ROW FORMAT row_format] </span><br><span class="line">  [AS select_statement];   -- (Note: Available in Hive 0.5.0 and later; not supported for external tables)  &lt;-- 新表表结构和数据取绝于select后字段</span><br><span class="line"></span><br><span class="line">CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name</span><br><span class="line">  LIKE existing_table_or_view_name    &lt;-- 只是拷贝表结构不涉及到数据</span><br><span class="line">  [LOCATION hdfs_path];</span><br><span class="line"></span><br><span class="line">row_format</span><br><span class="line">  : DELIMITED [FIELDS TERMINATED BY char [ESCAPED BY char]]</span><br></pre></td></tr></table></figure>
+<p>需要注意的创建表默认是内部表，指定EXTERNAL则是外部表，<strong>两者的区别在于删除时内部表hdfs上数据和元数据都会被删除，外部表只删除元数据不会</strong>。</p>
+<h3 id="alter-table"><a href="#alter-table" class="headerlink" title="alter table"></a>alter table</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 改名</span><br><span class="line">ALTER TABLE table_name RENAME TO new_table_name;</span><br></pre></td></tr></table></figure>
+
+<h3 id="drop-table"><a href="#drop-table" class="headerlink" title="drop table"></a>drop table</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DROP TABLE [IF EXISTS] table_name [PURGE];     -- (Note: PURGE available in Hive 0.14.0 and later)</span><br></pre></td></tr></table></figure>
+
+<h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>官方用法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOAD DATA [LOCAL] INPATH &#39;filepath&#39; [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1&#x3D;val1, partcol2&#x3D;val2 ...)]</span><br></pre></td></tr></table></figure>
+<p><strong>local指的是Linux服务器上的路径，未指定则是hdfs的路径。</strong></p>
+<h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SELECT [ALL | DISTINCT] select_expr, select_expr, ...</span><br><span class="line">  FROM table_reference</span><br><span class="line">  [WHERE where_condition]</span><br><span class="line">  [GROUP BY col_list]</span><br><span class="line">  [ORDER BY col_list]</span><br><span class="line">  [CLUSTER BY col_list</span><br><span class="line">    | [DISTRIBUTE BY col_list] [SORT BY col_list]</span><br><span class="line">  ]</span><br><span class="line"> [LIMIT [offset,] rows]</span><br></pre></td></tr></table></figure>
+<p>select用法基本和MySQL一样，需要注意的就是ORDER BY/CLUSTER BY/DISTRIBUTE BY/SORT BY的区别。下列列举区别：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ORDER BY --&gt; 全局排序，转化成的MR会只有一个reduce，数据量大慎用</span><br><span class="line">SORT BY --&gt; 局部排序，生效范围只会在各个reduce内，如果reduce只有一个效果跟ORDER BY一样</span><br><span class="line">DISTRIBUTE BY --&gt; 按照一定的规则把数据分散到某个reducer，可能会造成数据倾斜</span><br><span class="line">CLUSTER BY --&gt; DISTRIBUTE BY + SORT BY</span><br></pre></td></tr></table></figure>
+
+<h3 id="导出"><a href="#导出" class="headerlink" title="导出"></a>导出</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">INSERT OVERWRITE LOCAL DIRECTORY &#39;xxx&#39;</span><br><span class="line">ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\t&#39;  </span><br><span class="line">SELECT * FROM xxx; </span><br><span class="line">或者</span><br><span class="line">EXPORT TABLE tablename [PARTITION (part_column&#x3D;&quot;value&quot;[, ...])]</span><br><span class="line">  TO &#39;export_target_path&#39; [ FOR replication(&#39;eventid&#39;) ]</span><br></pre></td></tr></table></figure>
+
+<h3 id="内置函数"><a href="#内置函数" class="headerlink" title="内置函数"></a>内置函数</h3><p>hive本身自带很多内置函数，不就一一介绍，我们掌握如何查看以及用法即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 查看全部函数</span><br><span class="line">show functions;</span><br><span class="line"># 不带例子的函数说明</span><br><span class="line">desc function 函数名;</span><br><span class="line"># 带例子的函数说明</span><br><span class="line">desc function extended 函数名;</span><br></pre></td></tr></table></figure>
+
+<h3 id="hive的wc统计"><a href="#hive的wc统计" class="headerlink" title="hive的wc统计"></a>hive的wc统计</h3><p>现有wc表，字段只有一个str，表类数据为如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">str</span><br><span class="line"></span><br><span class="line">hello   hello   hello</span><br><span class="line">world   world</span><br><span class="line">welcome</span><br></pre></td></tr></table></figure>
+<p>现在要进行wc统计，HQL该怎么写？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 主要思路就是将行变为列</span><br><span class="line">select word,count(1) as num from</span><br><span class="line">(</span><br><span class="line">select explode(split(sentence,&#39;\t&#39;)) as word from wc</span><br><span class="line">) a group by word;</span><br></pre></td></tr></table></figure>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/" data-id="ckbhdlpqg001cc4ud3be17r93" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2018/07/18/Hive%E7%9A%84%E5%87%BD%E6%95%B0-TopN%E9%80%9A%E7%94%A8%E8%A7%A3%E6%B3%95-Beeline%E8%BF%9E%E6%8E%A5/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Hive的函数(json_tuple和parse_url_tuple)/topN通用解法/Beeline连接
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/07/17/Hive%E5%88%9D%E8%AF%86/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Hive初识</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

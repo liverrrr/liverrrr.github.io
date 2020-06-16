@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Hive初识 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Hive初识" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Hive初识
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/17/Hive%E5%88%9D%E8%AF%86/" class="article-date">
+  <time datetime="2018-07-17T03:33:28.000Z" itemprop="datePublished">2018-07-17</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="Hive是什么"><a href="#Hive是什么" class="headerlink" title="Hive是什么"></a>Hive是什么</h3><p>hive是用来解决海量结构化的日志数据统计问题的，一般是作为建立在Hadoop上的OLAP数据仓库。它是一个客户端，主要是将SQL转化成MR任务，特别适合离线处理。它有着类似于SQL的语法，上手难度小，最特别的是它有着统一的元数据管理便于其他组件也可以使用。</p>
+<h3 id="数据分布"><a href="#数据分布" class="headerlink" title="数据分布"></a>数据分布</h3><p>hive的数据主要分为两部分：数据以及元数据，元数据可以理解为MySQL的字段名称、表名一类的数据。<br>通常hive的元数据都是存储在MySQL中，数据就存在HDFS上。生产上一般存储元数据的MySQL会做主从复制，保证，元数据不丢。</p>
+<h3 id="Hive部署"><a href="#Hive部署" class="headerlink" title="Hive部署"></a>Hive部署</h3><ul>
+<li><p>下载</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ pwd</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software</span><br><span class="line">[hadoop@hadoop001 software]$ wget http:&#x2F;&#x2F;archive.cloudera.com&#x2F;cdh5&#x2F;cdh&#x2F;5&#x2F;hive-1.1.0-cdh5.7.0.tar.gz</span><br></pre></td></tr></table></figure></li>
+<li><p>解压</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ tar -zxvf hive-1.1.0-cdh5.7.0.tar.gz</span><br><span class="line">[hadoop@hadoop001 software]$ ln -s &#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hive-1.1.0-cdh5.7.0 &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hive</span><br></pre></td></tr></table></figure></li>
+<li><p>配置环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ vim ~&#x2F;.bash_profile</span><br><span class="line">....</span><br><span class="line">export HIVE_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hive</span><br><span class="line">export PATH&#x3D;$&#123;HIVE_HOME&#125;&#x2F;bin:$PATH</span><br><span class="line">....</span><br></pre></td></tr></table></figure></li>
+<li><p>将MySQL-JDBC的jar包放在HIVE_HOME/lib</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">访问https:&#x2F;&#x2F;dev.mysql.com&#x2F;downloads&#x2F;connector&#x2F;j&#x2F;并下载mysql-connector-java-5.1.47.zip</span><br><span class="line">解压zip将mysql-connector-java-5.1.47.jar上传到HIVE_HOME&#x2F;lib下</span><br></pre></td></tr></table></figure></li>
+<li><p>安装MySQL<br>请看<a href="https://liverrrr.fun/archives/linux_mysql" target="_blank" rel="noopener">MySQL生产环境级别部署</a></p>
+</li>
+<li><p>修改hive-site.xml</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type&#x3D;&quot;text&#x2F;xsl&quot; href&#x3D;&quot;configuration.xsl&quot;?&gt;</span><br><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionURL&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;jdbc:mysql:&#x2F;&#x2F;localhost:3306&#x2F;ruozedata?createDatabaseIfNotExist&#x3D;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;元数据存储的url&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionDriverName&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;com.mysql.jdbc.Driver&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionUserName&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;root&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionPassword&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;root&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.cli.print.current.db&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;打印当前hive库名&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">  </span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.cli.print.header&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;打印当前hive表字段名&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure></li>
+<li><p>启动hive</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 ~]$ hive   直接回车</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="Hive默认属性"><a href="#Hive默认属性" class="headerlink" title="Hive默认属性"></a>Hive默认属性</h3><ol>
+<li>hive数据默认放在HDFS上的/user/hive/warehouse路径下，这个可以通过hive.metastore.warehouse.dir属性修改，只要在hive-site.xml中加入以下:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.metastore.warehouse.dir&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;xxxx&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
+<li>hive默认进入的数据库叫做default，这个库在HDFS上就是hive.metastore.warehouse.dir所代表的路径。其他库也在其路径下，不过是以库名.db所命名的文件夹，hive所创建的表其实对应的就是对应库下的一个目录，默认文件的名字就是tablename。</li>
+<li>hive的日志是由$HIVE_HOME/conf/hive-log4j.properties的以下两个路径决定：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hive.log.dir&#x3D;$&#123;java.io.tmpdir&#125;&#x2F;$&#123;user.name&#125;  &lt;--就是&#x2F;tmp&#x2F;$&#123;username&#125;</span><br><span class="line">hive.log.file&#x3D;hive.log</span><br></pre></td></tr></table></figure></li>
+<li>如果要配置hive全局属性的话要在hive-site.xml配置才行，如果使用set 参数key=参数value的话，只在当前会话有效。当然这样hive –hiveconf k=v也行。</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/17/Hive%E5%88%9D%E8%AF%86/" data-id="ckbhdlpqi001ic4ud79251sy4" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Hive之DML和DDL语句
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Hive元数据结构梳理</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

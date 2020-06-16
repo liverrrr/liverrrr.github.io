@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Hive通过修改源码注册永久UDF |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Hive通过修改源码注册永久UDF" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Hive通过修改源码注册永久UDF
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/09/25/Hive%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%E6%B3%A8%E5%86%8C%E6%B0%B8%E4%B9%85UDF/" class="article-date">
+  <time datetime="2019-09-25T03:12:54.000Z" itemprop="datePublished">2019-09-25</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<p>准备：先下载对应版本的源码，并源码编译一次</p>
+<ol>
+<li>找出对应的java文件，并对其修改<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 hive-1.1.0-cdh5.7.0]# find . -name FunctionRegistry.java</span><br><span class="line">.&#x2F;ql&#x2F;src&#x2F;java&#x2F;org&#x2F;apache&#x2F;hadoop&#x2F;hive&#x2F;ql&#x2F;exec&#x2F;FunctionRegistry.java</span><br></pre></td></tr></table></figure></li>
+<li>修改FunctionRegistry.java文件，在文件的static块中参考其它函数的注册方法和导入自定义的java文件即可。例如参考：Substr这个函数<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.hadoop.hive.ql.udf.UDFSubstr;</span><br><span class="line">import org.apache.hadoop.hive.ql.udf.HelloWord;  &#x2F;&#x2F; 添加自定义UDF的包</span><br><span class="line"> </span><br><span class="line">  static &#123;</span><br><span class="line">    system.registerGenericUDF(&quot;concat&quot;, GenericUDFConcat.class);</span><br><span class="line">    system.registerUDF(&quot;my_hello&quot;, HelloWord.class, false, new FunctionResource[0]); &#x2F;&#x2F; 添加注册信息</span><br><span class="line">    system.registerUDF(&quot;substr&quot;, UDFSubstr.class, false);</span><br><span class="line">    ...</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></li>
+<li>进入UDFSubstr.java(实现Substr的文件)的同级目录，直接vi HelloWord.java ,然后复制黏贴感觉更效率。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 hive-1.1.0-cdh5.7.0]# find . -name UDFSubstr.java</span><br><span class="line">.&#x2F;ql&#x2F;src&#x2F;java&#x2F;org&#x2F;apache&#x2F;hadoop&#x2F;hive&#x2F;ql&#x2F;udf&#x2F;UDFSubstr.java</span><br></pre></td></tr></table></figure>
+HelloWord.java代码如下:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">package org.apache.hadoop.hive.ql.udf;</span><br><span class="line"> </span><br><span class="line">import org.apache.hadoop.hive.ql.exec.Description;</span><br><span class="line">import org.apache.hadoop.hive.ql.exec.UDF;</span><br><span class="line">import org.apache.hadoop.io.Text;</span><br><span class="line"> </span><br><span class="line">@Description(</span><br><span class="line">        name &#x3D; &quot;my_hello&quot;,</span><br><span class="line">        value &#x3D; &quot;my_hello(String)&quot;,</span><br><span class="line">        extended &#x3D; &quot;return new Text(\&quot;HelloWord:\&quot; + s.toString());&quot;</span><br><span class="line">)</span><br><span class="line"> </span><br><span class="line">public class HelloWord  extends UDF &#123;</span><br><span class="line">    public Text evaluate(final Text s) &#123;</span><br><span class="line">        if (s &#x3D;&#x3D; null) &#123; return null; &#125;</span><br><span class="line">        return new Text(&quot;HelloWord:&quot; + s.toString());</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    public static void main(String str[]) &#123;</span><br><span class="line">        System.out.println(&quot;hello&quot;);</span><br><span class="line">        Text s &#x3D; new Text(&quot;abc&quot;);</span><br><span class="line">        System.out.println(new HelloWord().evaluate(s).toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>编译 mvn clean package -Phadoop-2 -DskipTests -Pdist</li>
+<li>替换lib（替换前别忘了备份、替换前别忘了备份、替换前别忘了备份），这里别忘了把原来lib中mysql驱动拷贝回来</li>
+<li>进入hive检查是否存在该函数<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">hive&gt; desc function my_hello;</span><br><span class="line">OK</span><br><span class="line">my_hello(String)</span><br><span class="line">Time taken: 0.018 seconds, Fetched: 1 row(s)</span><br><span class="line"> </span><br><span class="line">OK。</span><br><span class="line">hive&gt; select my_hello(ename) from emp_dept_partition limit 3;</span><br><span class="line">OK</span><br><span class="line">HelloWord:SMITH</span><br><span class="line">HelloWord:JONES</span><br><span class="line">HelloWord:SCOTT</span><br><span class="line">Time taken: 0.108 seconds, Fetched: 3 row(s)</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/09/25/Hive%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9%E6%BA%90%E7%A0%81%E6%B3%A8%E5%86%8C%E6%B0%B8%E4%B9%85UDF/" data-id="ckbhdlpql001sc4udfzb11t4q" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/10/05/CDH5.16.1%E9%9B%86%E7%BE%A4%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            CDH5.16.1集群离线部署
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/09/22/Flume%E7%9A%84Processors%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Flume之Sink Processors以及如何调优</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

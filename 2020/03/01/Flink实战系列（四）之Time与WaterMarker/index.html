@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Flink实战系列（四）之Time与WaterMarker |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Flink实战系列（四）之Time与WaterMarker" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Flink实战系列（四）之Time与WaterMarker
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/" class="article-date">
+  <time datetime="2020-03-01T02:31:30.000Z" itemprop="datePublished">2020-03-01</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：本文主要介绍Time与WaterMarker相关概念以及使用方法</p>
+<a id="more"></a>
+<h1 id="Time"><a href="#Time" class="headerlink" title="Time"></a>Time</h1><p>Flink在流处理中支持以下三种时间概念：<br /><img src="/images/time.png" alt="time.png"><br><a name="vo4u3"></a></p>
+<h2 id="Processing-time"><a href="#Processing-time" class="headerlink" title="Processing time"></a>Processing time</h2><p>processing time就是执行各个操作时的对应机器系统时间。<strong><br /></strong><br />当流处理使用 processing time 时，所有基于时间的操作(例如窗口)都会使用当前操作对应的机器系统时间。一个整时的 processing time 窗口将包括系统时钟指示整小时的时间之间到达特定操作的所有记录。例如，如果应用程序在 9:15 am 开始运行，则第一个每小时处理时间窗口将包括在 9:15 am 和 10:00 am 之间处理的事件，下一个窗口将包括在 10:00 am 和 11:00 am 之间处理的事件，依此类推。</p>
+<p>processing time 是最简单的时间概念，不需要流和机器之间的协调。它提供了最佳的性能和最低的延迟，但是在分布式和异步环境中，processing time 不能提供确定性，因为它易受记录到达系统（例如，从消息队列）的速度，记录在系统内部操作之间流动的速度的影响，以及中断（计划的或其他方式）。</p>
+<p><a name="7ftOJ"></a></p>
+<h2 id="Event-time"><a href="#Event-time" class="headerlink" title="Event time"></a>Event time</h2><p>event time 是每个事件在其生产设备上发生的时间。**该时间通常在它们进入 Flink 之前嵌入记录中，并且可以从每个记录中提取事件时间戳。在 event time 事件中，时间的进度取决于数据，而不取决于任何挂钟。event time 程序必须指定如何生成事件时间水印，这是信号事件时间进展的机制。</p>
+<p><strong>在理想情况下，event time 处理将产生完全一致且确定的结果，而不管事件何时到达或它们的顺序如何</strong>。但是，除非已知事件是按时间戳（按时间戳记）到达的，否则 event time 处理会在等待无序事件时产生一些延迟。由于只能等待有限的时间，因此这限制了确定性 event time 应用程序的可使用性。</p>
+<p>假设所有数据都已到达，event time 操作将按预期方式运行，即使在处理无序或迟到事件或重新处理历史数据时，也会产生正确且一致的结果。**例如，每小时 event time 窗口将包含所有带有落入该小时事件时间戳的记录，无论它们到达的顺序或处理时间。</p>
+<p>请注意，有时当 event time 程序实时处理实时数据时，它们将使用一些 processing time操作，以确保其及时进行。</p>
+<p><a name="42orb"></a></p>
+<h2 id="Ingestion-time"><a href="#Ingestion-time" class="headerlink" title="Ingestion time"></a>Ingestion time</h2><p>Ingestion time 是事件进入 Flink 的时间。**在源操作处，每个记录都将源的当前时间作为时间戳记，并且基于时间的操作（例如时间窗口）引用该时间戳记。</p>
+<p>Ingestion time 从概念上讲介于 event time 和 processing time 之间。**与 processing time 相比，它稍微花费多些，但结果却更可预测。 由于 Ingestion time 使用稳定的时间戳（在源处分配了一次），因此对记录的不同窗口操作将引用相同的时间戳，而在 processing time 中，每个窗口操作都可以将记录分配给不同的窗口（基于本地系统时钟和任何运输延误）。</p>
+<p><strong>与 event time 相比，Ingestion time 程序无法处理任何乱序事件或延迟数据，但是程序无需指定如何生成水印。在内部，Ingestion time 与 event time 非常相似，但是具有自动时间戳分配和自动水印生成功能。</strong></p>
+<p><a name="eYPbg"></a></p>
+<h2 id="设置Time-Characteristic"><a href="#设置Time-Characteristic" class="headerlink" title="设置Time Characteristic"></a>设置Time Characteristic</h2><p>Flink 流处理程序中通常都会设置基础的 time characteristic，它将会定义数据源表现(比如：它是否分配时间戳)，以及时间窗口操作(像 KeyedStream.timeWindow(Time.seconds(30)) )使用上述哪类时间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">final StreamExecutionEnvironment env &#x3D; StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 可选:</span><br><span class="line">&#x2F;&#x2F; env.setStreamTimeCharacteristic(TimeCharacteristic.IngestionTime);</span><br><span class="line">&#x2F;&#x2F; env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);</span><br><span class="line"></span><br><span class="line">DataStream&lt;MyEvent&gt; stream &#x3D; env.addSource(new FlinkKafkaConsumer09&lt;MyEvent&gt;(topic, schema, props));</span><br><span class="line"></span><br><span class="line">stream</span><br><span class="line">    .keyBy( (event) -&gt; event.getUser() )</span><br><span class="line">    .timeWindow(Time.hours(1))</span><br><span class="line">    .reduce( (a, b) -&gt; a.add(b) )</span><br><span class="line">    .addSink(...);</span><br></pre></td></tr></table></figure>
+
+<p><strong>⚠️请注意，为了在 event time 中运行此示例，程序需要使用直接为数据定义事件时间并自己发出水印的源，或者程序必须在源之后注入Timestamp 和 Watermark，这个会在之后介绍。</strong></p>
+<p><a name="event-time-and-watermarks"></a></p>
+<h1 id="Watermarks"><a href="#Watermarks" class="headerlink" title="Watermarks"></a>Watermarks</h1><p>Watermarks是Flink用来衡量使用 event time 作业的机制。<strong>它会带着时间戳</strong>t<strong>随着数据流变化，这表示数据流中不应该出现</strong>(t` &lt;= t)<strong>的元素，也就是不会出现数据中时间小于等于Watermarks的数据。</strong></p>
+<p>下图显示了带有（逻辑）时间戳记的事件流，以及其中变化的Watermarks。在此示例中，事件是按顺序排列的（相对于其时间戳来说），这意味着水印只是流中的周期性标记。<br /><img src="/images/stream_watermark_in_order.svg" alt="stream_watermark_in_order.svg"></p>
+<p>Watermarks 对于乱序流至关重要，如下图所示，其中事件没有按其时间戳排序。 通常，Watermarks 是一个声明，即到流中的那个点，所有到特定时间戳的事件都应该到达。 一旦 Watermarks 到达操作，操作就可以将其内部事件时钟提前到 Watermarks 的值。<br /><img src="/images/stream_watermark_out_of_order.svg" alt="stream_watermark_out_of_order.svg"></p>
+<p><strong>⚠️请注意，事件时间是由新创建的一个（或多个）流元素从产生它们的事件或触发了创建这些元素的水印中继承的。</strong></p>
+<p><a name="cZvH7"></a></p>
+<h1 id="并行数据流中Watermarks"><a href="#并行数据流中Watermarks" class="headerlink" title="并行数据流中Watermarks"></a>并行数据流中Watermarks</h1><p>Watermarks 在源函数处或源函数之后直接生成，源函数的每个并行子任务通常独立生成其水印。数据流中的Watermarks当到达操作时，操作都会提前将 event time 更新，同时也会下游算子生成新的水印。</p>
+<p>一些操作会消耗多个输入流，比如union、keyBy、partition等，这些操作会使用多个流中最小的event time。随着输入流改变了 event time，这些操作也会更新。<br /><img src="/images/parallel_streams_watermarks.svg" alt="parallel_streams_watermarks.svg"></p>
+<p><a name="rTROO"></a></p>
+<h1 id="自定义生成-Timestamps-和-Watermarks"><a href="#自定义生成-Timestamps-和-Watermarks" class="headerlink" title="自定义生成 Timestamps 和 Watermarks"></a>自定义生成 Timestamps 和 Watermarks</h1><p>Flink中使用 event time 必须知道事件自带的事件戳，这意味这数据流中每个事件都要被分配一个时间戳。Flink程序一般来说是用访问/提取元素中某个字段来获取到的，同时 Watermarks 也会在此生成，保证作业知道进度。</p>
+<p>一般来说，有以下两类方式分配 Timestamps 和生成 Watermarks：</p>
+<ul>
+<li>直接数据源处生成</li>
+<li>通过时间戳分配器/水印生成器：在Flink中，时间戳分配器还定义要发送的水印</li>
+</ul>
+<p><strong>⚠️注意：自Java中1970-01-01T00：00：00Z的以来，Timestamp 和 Watermarks 都指定为毫秒。</strong><br /><br><a name="7ILC9"></a></p>
+<h2 id="自定义数据源产生-Timestamps-and-Watermarks"><a href="#自定义数据源产生-Timestamps-and-Watermarks" class="headerlink" title="自定义数据源产生 Timestamps and Watermarks"></a>自定义数据源产生 Timestamps and Watermarks</h2><p>数据源可以将 Timestamp 直接分配给它们产生的元素，并且它们还可以发出 Watermarks。 完成此操作后，不需要时间戳分配器。 <strong>请注意，如果使用时间戳分配器，则数据源所提供的任何 Timestamp 和 Watermarks 都将被覆盖。</strong></p>
+<p>要将时间戳直接分配给源中的元素，数据源必须使用 <strong>SourceContext</strong> 上的 collectWithTimestamp（…）方法。 要生成水印，源必须调用 emitWatermark（Watermark） 函数。</p>
+<p>下面是一个简单的示例（无检查点）源，该源分配时间戳并生成水印：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(ctx: <span class="type">SourceContext</span>[<span class="type">MyType</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">	<span class="keyword">while</span> (<span class="comment">/* condition */</span>) &#123;</span><br><span class="line">		<span class="keyword">val</span> next: <span class="type">MyType</span> = getNext()</span><br><span class="line">		ctx.collectWithTimestamp(next, next.eventTimestamp)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (next.hasWatermarkTime) &#123;</span><br><span class="line">			ctx.emitWatermark(<span class="keyword">new</span> <span class="type">Watermark</span>(next.getWatermarkTime))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a name="LtpoB"></a></p>
+<h2 id="自定义的Timestamp-Assigners-Watermark-Generators"><a href="#自定义的Timestamp-Assigners-Watermark-Generators" class="headerlink" title="自定义的Timestamp Assigners / Watermark Generators"></a>自定义的Timestamp Assigners / Watermark Generators</h2><p>时间戳分配器获取流并产生带有 Timestamp 和 Watermarks 的新流。如果原始流已经具有Timestamp/Watermarks，则时间戳分配器将覆盖它们。</p>
+<p>时间戳分配器通常在数据源之后立即指定，但并非严格要求这样做。例如，一种常见的模式是在时间戳分配器之前解析（MapFunction）和筛选器（FilterFunction）。 无论如何，都需要在事件时间的第一次操作（例如第一次窗口操作）之前指定时间戳分配器。 作为一种特殊情况，当使用 Kafka 作为流作业的源时，Flink 允许在源（或使用者）本身内部指定时间戳分配器/水印生成器。这一部分会在后面讲解的。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</span><br><span class="line">env.setStreamTimeCharacteristic(<span class="type">TimeCharacteristic</span>.<span class="type">EventTime</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> stream: <span class="type">DataStream</span>[<span class="type">MyEvent</span>] = env.readFile(</span><br><span class="line">         myFormat, myFilePath, <span class="type">FileProcessingMode</span>.<span class="type">PROCESS_CONTINUOUSLY</span>, <span class="number">100</span>,</span><br><span class="line">         <span class="type">FilePathFilter</span>.createDefaultFilter())</span><br><span class="line"></span><br><span class="line"><span class="comment">// 指定时间戳分配和水印生成</span></span><br><span class="line"><span class="keyword">val</span> withTimestampsAndWatermarks: <span class="type">DataStream</span>[<span class="type">MyEvent</span>] = stream</span><br><span class="line">        .filter( _.severity == <span class="type">WARNING</span> )</span><br><span class="line">        .assignTimestampsAndWatermarks(<span class="keyword">new</span> <span class="type">MyTimestampsAndWatermarks</span>())</span><br><span class="line"></span><br><span class="line">withTimestampsAndWatermarks</span><br><span class="line">        .keyBy( _.getGroup )</span><br><span class="line">        .timeWindow(<span class="type">Time</span>.seconds(<span class="number">10</span>))</span><br><span class="line">        .reduce( (a, b) =&gt; a.add(b) )</span><br><span class="line">        .addSink(...)</span><br></pre></td></tr></table></figure>
+
+<p><a name="9uruS"></a></p>
+<h3 id="周期性生成-Watermarks"><a href="#周期性生成-Watermarks" class="headerlink" title="周期性生成 Watermarks"></a>周期性生成 Watermarks</h3><p>AssignerWithPeriodicWatermarks 分配时间戳并定期生成水印（可能取决于流元素，或纯粹基于处理时间）。</p>
+<p>通过 ExecutionConfig.setAutoWatermarkInterval（…）定义生成水印的间隔（每n毫秒）。每次都会调用分配者的 getCurrentWatermark（）方法，如果返回的 Watermark 非空且大于前一个 Watermark，则将发出新的 Watermark。</p>
+<p>在这里，我们显示了两个使用定期水印生成的时间戳分配器的简单示例。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 该生成器生成水印，前提是假定元素不按顺序到达，但仅在一定程度上到达。 </span></span><br><span class="line"><span class="comment"> * 某个时间戳记t的最新元素将在最早的时间戳记t元素之后最多n毫秒到达。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BoundedOutOfOrdernessGenerator</span> <span class="keyword">extends</span> <span class="title">AssignerWithPeriodicWatermarks</span>[<span class="type">MyEvent</span>] </span>&#123;</span><br><span class="line">    <span class="keyword">val</span> maxOutOfOrderness = <span class="number">3500</span>L <span class="comment">// 3.5 seconds</span></span><br><span class="line">    <span class="keyword">var</span> currentMaxTimestamp: <span class="type">Long</span> = _</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">extractTimestamp</span></span>(element: <span class="type">MyEvent</span>, previousElementTimestamp: <span class="type">Long</span>): <span class="type">Long</span> = &#123;</span><br><span class="line">        <span class="keyword">val</span> timestamp = element.getCreationTime()</span><br><span class="line">        currentMaxTimestamp = max(timestamp, currentMaxTimestamp)</span><br><span class="line">        timestamp</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getCurrentWatermark</span></span>(): <span class="type">Watermark</span> = &#123;</span><br><span class="line">        <span class="comment">// 返回当前最高时间戳减去乱序限制的Watermark</span></span><br><span class="line">        <span class="keyword">new</span> <span class="type">Watermark</span>(currentMaxTimestamp - maxOutOfOrderness)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 该生成器生成的水印滞后于处理时间一个固定量，它假定元素在有限的延迟后到达Flink。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TimeLagWatermarkGenerator</span> <span class="keyword">extends</span> <span class="title">AssignerWithPeriodicWatermarks</span>[<span class="type">MyEvent</span>] </span>&#123;</span><br><span class="line">    <span class="keyword">val</span> maxTimeLag = <span class="number">5000</span>L <span class="comment">// 5 seconds</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">extractTimestamp</span></span>(element: <span class="type">MyEvent</span>, previousElementTimestamp: <span class="type">Long</span>): <span class="type">Long</span> = &#123;</span><br><span class="line">        element.getCreationTime</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getCurrentWatermark</span></span>(): <span class="type">Watermark</span> = &#123;</span><br><span class="line">        <span class="comment">// 返回当前时间减去最大时滞的Watermark</span></span><br><span class="line">        <span class="keyword">new</span> <span class="type">Watermark</span>(<span class="type">System</span>.currentTimeMillis() - maxTimeLag)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a name="VbtjK"></a></p>
+<h3 id=""><a href="#" class="headerlink" title=""></a><br /></h3><p><a name="iBHew"></a></p>
+<h3 id="触发式生成-Watermarks"><a href="#触发式生成-Watermarks" class="headerlink" title="触发式生成 Watermarks"></a>触发式生成 Watermarks</h3><p>若要在特定事件表明可能会生成新的 Watermark 时生成 Watermark，请使用 AssignerWithPunctuatedWatermarks。对于此类，Flink将首先调用 extractTimestamp（…）方法为该元素分配时间戳，然后立即在该元素上调用 checkAndGetNextWatermark（…）方法。</p>
+<p>将 checkAndGetNextWatermark（…） 方法传递给 extractTimestamp（…）方法中分配的时间戳，并可以决定是否要生成水印。 每当 checkAndGetNextWatermark（…）方法返回非空水印，并且该水印大于最新的先前水印时，就会发出新的水印。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PunctuatedAssigner</span> <span class="keyword">extends</span> <span class="title">AssignerWithPunctuatedWatermarks</span>[<span class="type">MyEvent</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">extractTimestamp</span></span>(element: <span class="type">MyEvent</span>, previousElementTimestamp: <span class="type">Long</span>): <span class="type">Long</span> = &#123;</span><br><span class="line">		element.getCreationTime</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">checkAndGetNextWatermark</span></span>(lastElement: <span class="type">MyEvent</span>, extractedTimestamp: <span class="type">Long</span>): <span class="type">Watermark</span> = &#123;</span><br><span class="line">		<span class="keyword">if</span> (lastElement.hasWatermarkMarker()) <span class="keyword">new</span> <span class="type">Watermark</span>(extractedTimestamp) <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>⚠️注意：以上示例是在每个事件上生成水印。但是，由于每个水印都会在下游引起一些计算，因此过多的水印会降低性能。</strong><br />**<br><a name="rG6li"></a></p>
+<h1 id="预定义-Timestamp-和-Watermarks"><a href="#预定义-Timestamp-和-Watermarks" class="headerlink" title="预定义 Timestamp 和 Watermarks"></a>预定义 Timestamp 和 Watermarks</h1><p>为了进一步简化此类任务的编程工作，Flink附带了一些预先实现的时间戳分配器。 除了开箱即用的功能外，它们的实现还可以作为自定义实现的示例。</p>
+<p><a name="xVifj"></a></p>
+<h2 id="递增时间戳-ascending-timestamps"><a href="#递增时间戳-ascending-timestamps" class="headerlink" title="递增时间戳(ascending timestamps)"></a>递增时间戳(ascending timestamps)</h2><p>定期生成水印的最简单情况是给指定源任务看到的时间戳以升序出现的情况。在这种情况下，当前时间戳始终可以充当 Watermark，因为没有更早的时间戳会到达。</p>
+<p>请注意，它的前置要求是每个并行数据源产生的时间戳是升序的。举个例子，如果在一个特定的设置中，一个并行数据源实例读取一个 Kafka 分区，则只需要在每个 Kafka 分区内将时间戳记递增。每当对并行流进行shuffled, unioned, connected, 或者 merged 时，Flink 的水印合并机制将生成正确的水印。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> stream: <span class="type">DataStream</span>[<span class="type">MyEvent</span>] = ...</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> withTimestampsAndWatermarks = stream.assignAscendingTimestamps( _.getCreationTime )</span><br></pre></td></tr></table></figure>
+<p><a name="ZaFRq"></a></p>
+<h2 id="允许固定的延迟时间-allowing-a-fixed-amount-of-lateness"><a href="#允许固定的延迟时间-allowing-a-fixed-amount-of-lateness" class="headerlink" title="允许固定的延迟时间(allowing a fixed amount of lateness)"></a>允许固定的延迟时间(allowing a fixed amount of lateness)</h2><p>周期性水印生成的另一个示例是水印在流中看到的最大（事件时间）时间戳落后固定时间量的情况。这种情况涵盖了预先知道流中可能遇到的最大延迟的场景，例如 当创建包含带有时间戳的元素的自定义源时，该时间戳会在固定的时间内传播以进行测试。对于这些情况，Flink提供了 BoundedOutOfOrdernessTimestampExtractor，该参数将 maxOutOfOrderness 作为参数，即在计算给定窗口的最终结果时允许元素延迟到被忽略之前的最长时间。延迟对应于 t-t_w 的结果，其中 t 是元素的（事件时间）时间戳，而 t_w 是先前水印的时间戳。如果延迟 &gt; 0，则将元素视为延迟，并且默认情况下，在为其相应窗口计算作业结果时将忽略该元素。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> stream: <span class="type">DataStream</span>[<span class="type">MyEvent</span>] = ...</span><br><span class="line"><span class="keyword">val</span> withTimestampsAndWatermarks = stream.assignTimestampsAndWatermarks(</span><br><span class="line">  <span class="keyword">new</span> <span class="type">BoundedOutOfOrdernessTimestampExtractor</span>[<span class="type">MyEvent</span>](<span class="type">Time</span>.seconds(<span class="number">10</span>))( _.getCreationTime )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/" data-id="ckbhdlpq5000fc4ud6ia31wuv" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Flink实战系列（五）之State
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Flink实战系列（三）之Source和Sink的使用</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

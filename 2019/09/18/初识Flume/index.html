@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    初识Flume |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-初识Flume" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      初识Flume
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/09/18/%E5%88%9D%E8%AF%86Flume/" class="article-date">
+  <time datetime="2019-09-18T03:19:07.000Z" itemprop="datePublished">2019-09-18</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flume/">Flume</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h2 id="Flume是什么"><a href="#Flume是什么" class="headerlink" title="Flume是什么"></a>Flume是什么</h2><p>Apache Flume是一个分布式，可靠且可用的系统，用于有效地从许多不同的源收集，聚合和移动大量日志数据到集中式数据存储(例如HDFS)。<br><br>Apache Flume的使用不仅限于日志数据聚合。 由于数据源可以是自定义的，因此Flume可用于传输大量事件数据，包括但不限于网络流量数据，社交媒体生成的数据，电子邮件消息以及几乎任何可能的数据源。<br><br>Flume有两条产品线，0.9.x版本和1.x版本，但是0.9.x版本没有人使用，官方也推荐使用1.x版本的。<br></p>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><p>Flume中最小单元是Agent，日志收集可以单Agent完成，也可以多个Agent串行或者并行完成，下图则是个最简单的单Agent架构图。<br></p>
+<p><img src="/images/flume%E6%9E%B6%E6%9E%84%E5%9B%BE01.jpg" alt="flume架构图01"></p>
+<h3 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h3><ul>
+<li>Source主要是收集数据</li>
+<li>常用的Source类型也就是avro(Agent和Agent传输的类型)/taildir/netcat</li>
+<li>Source至少与一个Channel相连</li>
+</ul>
+<h3 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h3><ul>
+<li>Channel起到缓冲通道的作用</li>
+<li>常用的Channel类型有：memory/file，memory与file区别就在于数据是否持久化，选择memory可能在宕机的时候存在Channel数据丢失，选择file可能会对你的硬盘容量是个挑战</li>
+<li>事务保证sink数据到Channel和Channel数据到Sink</li>
+<li>Channel可以与任意数量的Source和Sink搭配</li>
+</ul>
+<h3 id="Sink"><a href="#Sink" class="headerlink" title="Sink"></a>Sink</h3><ul>
+<li>Sink将采集的日志数据发送给HDFS或者下一个Agent</li>
+<li>常用的Sink类型有：avro/hdfs/logger(测试使用，打印在控制台)</li>
+<li>Sink必须至少有个Channel相连</li>
+</ul>
+<h3 id="Event"><a href="#Event" class="headerlink" title="Event"></a>Event</h3><ul>
+<li>整个Agent中数据传输的基本单元</li>
+<li>由Map&lt;String, String&gt;类型的Headers和byte[]数组的body组成，其中Headers是描述存放在body数据可以为空，body是真正存放数据</li>
+</ul>
+<h2 id="Flume如何启动Agent"><a href="#Flume如何启动Agent" class="headerlink" title="Flume如何启动Agent"></a>Flume如何启动Agent</h2><p>官网推荐使用以下命令启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bin&#x2F;flume-ng agent \</span><br><span class="line">--conf $FLUME_HOME&#x2F;conf \  </span><br><span class="line">--conf-file example.conf \  &lt;-- 加载你写的配置文件</span><br><span class="line">--name a1 \   &lt;-- agent名字</span><br><span class="line">-Dflume.root.logger&#x3D;INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>以上面的命令来看我们还得自己写个配置文件，以下是官方推荐的配置文件模板：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># example.conf: A single-node Flume configuration</span><br><span class="line"># 配置了一个source为netcat，sink为logger，channel为memory的单agent</span><br><span class="line"></span><br><span class="line"># Name the components on this agent</span><br><span class="line"># 注意以下的可以定义多个</span><br><span class="line">a1.sources &#x3D; r1</span><br><span class="line">a1.sinks &#x3D; k1</span><br><span class="line">a1.channels &#x3D; c1</span><br><span class="line"></span><br><span class="line"># Describe&#x2F;configure the source</span><br><span class="line">a1.sources.r1.type &#x3D; netcat</span><br><span class="line">a1.sources.r1.bind &#x3D; localhost</span><br><span class="line">a1.sources.r1.port &#x3D; 44444</span><br><span class="line"></span><br><span class="line"># Describe the sink</span><br><span class="line">a1.sinks.k1.type &#x3D; logger</span><br><span class="line"></span><br><span class="line"># Use a channel which buffers events in memory</span><br><span class="line">a1.channels.c1.type &#x3D; memory</span><br><span class="line">a1.channels.c1.capacity &#x3D; 1000</span><br><span class="line">a1.channels.c1.transactionCapacity &#x3D; 100</span><br><span class="line"></span><br><span class="line"># Bind the source and sink to the channel</span><br><span class="line">a1.sources.r1.channels &#x3D; c1</span><br><span class="line">a1.sinks.k1.channel &#x3D; c1</span><br></pre></td></tr></table></figure>
+
+<p>运行命令之后，再开个会话，使用如下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ telnet localhost 44444</span><br><span class="line">Trying 127.0.0.1...</span><br><span class="line">Connected to localhost.localdomain (127.0.0.1).</span><br><span class="line">Escape character is &#39;^]&#39;.</span><br><span class="line">Hello world! &lt;ENTER&gt;</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
+
+<p>结果如下，代表Agent成功运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">12&#x2F;06&#x2F;19 15:32:19 INFO source.NetcatSource: Source starting</span><br><span class="line">12&#x2F;06&#x2F;19 15:32:19 INFO source.NetcatSource: Created serverSocket:sun.nio.ch.ServerSocketChannelImpl[&#x2F;127.0.0.1:44444]</span><br><span class="line">12&#x2F;06&#x2F;19 15:32:34 INFO sink.LoggerSink: Event: &#123; headers:&#123;&#125; body: 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 0D          Hello world!. &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="额外练习"><a href="#额外练习" class="headerlink" title="额外练习"></a>额外练习</h2><p>需求：监控一个文件夹下的数据输出到HDFS并且分区</p>
+<h3 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h3><p>三大组件类型选择：<br><br>Source：taildir<br><br>Channel：memory<br><br>Sink：hdfs<br></p>
+<h3 id="taildir-exec-spooling区别"><a href="#taildir-exec-spooling区别" class="headerlink" title="taildir/exec/spooling区别"></a>taildir/exec/spooling区别</h3><p>exec：只能监控一个文件，在重新启动之后容易造成数据重复<br><br>spooling：可以监控文件夹，但是重新启动之后容易造成数据丢失<br><br>taildir：可以监控多个文件，会在采集过程记录采集位置，重新启动之后不会丢失数据或者数据重复<br></p>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"># taildir-memory-hdfs.conf:分区是按天</span><br><span class="line"></span><br><span class="line"># Name the components on this agent</span><br><span class="line">a1.sources &#x3D; r1</span><br><span class="line">a1.sinks &#x3D; k1</span><br><span class="line">a1.channels &#x3D; c1</span><br><span class="line"></span><br><span class="line"># Describe&#x2F;configure the source</span><br><span class="line">a1.sources.r1.type &#x3D; taildir</span><br><span class="line">a1.sources.r1.positionFile &#x3D; &#x2F;home&#x2F;hadoop&#x2F;data&#x2F;flume&#x2F;taildir_position.json</span><br><span class="line">a1.sources.r1.filegroups &#x3D; f1</span><br><span class="line">a1.sources.r1.filegroups.f1 &#x3D; &#x2F;home&#x2F;hadoop&#x2F;logs&#x2F;project&#x2F;access.log</span><br><span class="line"></span><br><span class="line"># Describe the sink</span><br><span class="line">a1.sinks.k1.type &#x3D; hdfs</span><br><span class="line">a1.sinks.k1.hdfs.path &#x3D; &#x2F;flume&#x2F;events&#x2F;%Y%m%d&#x2F;</span><br><span class="line">a1.sinks.k1.hdfs.filePrefix &#x3D; log</span><br><span class="line">a1.sinks.k1.hdfs.useLocalTimeStamp &#x3D; true</span><br><span class="line">a1.sinks.k1.hdfs.fileType &#x3D; CompressedStream</span><br><span class="line">a1.sinks.k1.hdfs.writeFormat &#x3D; Text</span><br><span class="line">a1.sinks.k1.hdfs.roundValue &#x3D; 24</span><br><span class="line">a1.sinks.k1.hdfs.roundUnit &#x3D; hour</span><br><span class="line"></span><br><span class="line"># Use a channel which buffers events in memory</span><br><span class="line">a1.channels.c1.type &#x3D; memory</span><br><span class="line"></span><br><span class="line"># Bind the source and sink to the channel</span><br><span class="line">a1.sources.r1.channels &#x3D; c1</span><br><span class="line">a1.sinks.k1.channel &#x3D; c1</span><br></pre></td></tr></table></figure>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/09/18/%E5%88%9D%E8%AF%86Flume/" data-id="ckbhdlprg004qc4udb8vvawms" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flume/" rel="tag">Flume</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/09/22/Flume%E7%9A%84Processors%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Flume之Sink Processors以及如何调优
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Zookeeper入门</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

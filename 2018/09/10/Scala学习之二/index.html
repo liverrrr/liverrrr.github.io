@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Scala学习之二 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Scala学习之二" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Scala学习之二
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%BA%8C/" class="article-date">
+  <time datetime="2018-09-10T03:23:01.000Z" itemprop="datePublished">2018-09-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Scala/">Scala</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h2 id="类class"><a href="#类class" class="headerlink" title="类class"></a>类class</h2><p>Scala中类的定义跟Java很相似，类是由属和方法组成，同样可以使用new的方式创建对象实例，进而调用类中定义好的方法与属性。下面就是一个简单的Scala类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">class People &#123;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; 属性的定义： val&#x2F;var 名称:类型 &#x3D;  值</span><br><span class="line">  var name:String &#x3D; _  &#x2F;&#x2F; _ 占位符  前提是一定要明确是什么数据类型</span><br><span class="line">  var age:Int &#x3D; 3</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; 私有属性，外部不能直接调用</span><br><span class="line">  private var gender &#x3D; &quot;M&quot;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; 定义方法</span><br><span class="line">  def playBasketball(team:String) &#x3D; &#123;</span><br><span class="line">    println(name + &quot; is playing basketball of &quot; + team)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def drink() &#x3D; &#123;</span><br><span class="line">    name + &quot; is drinking...&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 主方法中调用</span><br><span class="line">def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    val people &#x3D; new People   &#x2F;&#x2F; 实例化一个Class对象</span><br><span class="line">    people.name &#x3D; &quot;周琦&quot;  &#x2F;&#x2F; 为对象赋值</span><br><span class="line">    people.age &#x3D; 30</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;    people.gender  无法调用</span><br><span class="line"></span><br><span class="line">    println(people.name + &quot; : &quot; + people.age )</span><br><span class="line"></span><br><span class="line">    people.playBasketball(&quot;China&quot;)</span><br><span class="line">    println(people.drink())  </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是Scala中类的构造器与Java完全不一样，主要分为主构造器和附属构造器。代码示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  * 主构造器 类名(参数名:参数类型)</span><br><span class="line">  * 如果你想在外面调用Person的name和age必须在之前加val或者var,默认是私有的</span><br><span class="line">  *&#x2F;</span><br><span class="line">class Person(val name:String,val age:Int)&#123;</span><br><span class="line">  println(&quot;进入Person主构造器&quot;)</span><br><span class="line"></span><br><span class="line">  var job:String &#x3D; _  &#x2F;&#x2F; _ 占位符  前提是一定要明确是什么数据类型</span><br><span class="line">  val sex&#x3D;&quot;男&quot;</span><br><span class="line"></span><br><span class="line">  &#x2F;**</span><br><span class="line">    * 附属构造器的名称 this</span><br><span class="line">    * 每个附属构造器的第一行必须调用主构造器或者其他的附属构造器</span><br><span class="line">    *&#x2F;</span><br><span class="line">  def this(name:String,age:Int,job:String)&#123;</span><br><span class="line">    this(name,age)</span><br><span class="line">    this.job&#x3D;job</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;执行完Person主构造器&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>无论你调用哪个构造器来创造类实例，一定会将类从头到尾执行一遍。同样的子类创建时也会执行父类主构造器。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  * override是子类重写父类中的属性或者方法的修饰符</span><br><span class="line">  * new 子类会调用父类的构造</span><br><span class="line">  * 子类构造器只能在父类主构造器上添加属性</span><br><span class="line">  *&#x2F;</span><br><span class="line">class Student(name:String,age:Int,val major:String) extends Person(name,age)&#123;</span><br><span class="line">  println(&quot;进入Student构造器&quot;)</span><br><span class="line"></span><br><span class="line">  override val sex&#x3D;&quot;女&quot;</span><br><span class="line"></span><br><span class="line">  override def toString: String &#x3D; &#123;</span><br><span class="line">      this.name+&quot;\t&quot;+this.age+&quot;\t&quot;+this.job+&quot;\t&quot;+this.sex+&quot;\t&quot;+this.major</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;执行完Student构造器&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="抽象类"><a href="#抽象类" class="headerlink" title="抽象类"></a>抽象类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  * 抽象类:</span><br><span class="line">  * 1） 类中有一个或者多个方法&#x2F;属性的定义，没有实现</span><br><span class="line">  * 2） 抽象类是不能直接new</span><br><span class="line">  * 3） 使用时要有完全实现了抽象方法&#x2F;属性的子类才行</span><br><span class="line">  * 4） 子类重写父类方法或者属性时不一定需要override</span><br><span class="line">  *&#x2F;</span><br><span class="line">object AbstractClassApp &#123;</span><br><span class="line"></span><br><span class="line">  def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    val people &#x3D; new People</span><br><span class="line">    people.speak</span><br><span class="line">    println(people.sum(1))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">abstract class action &#123;</span><br><span class="line">  def speak</span><br><span class="line"></span><br><span class="line">  val word: String</span><br><span class="line">  val a&#x3D;1</span><br><span class="line">  def sum(a:Int)&#x3D;a+1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class People extends action &#123;</span><br><span class="line">  def speak: Unit &#x3D; &#123;</span><br><span class="line">    println(word)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  override val word: String &#x3D; &quot;hello&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="对象Object"><a href="#对象Object" class="headerlink" title="对象Object"></a>对象Object</h2><ul>
+<li>Object可以拥有属性和方法，且默认都是”static”类型，可以直接用object名直接调用属性和方法。</li>
+<li>Object里的main函数式应用程序的入口。</li>
+</ul>
+<h2 id="伴生对象和伴生类"><a href="#伴生对象和伴生类" class="headerlink" title="伴生对象和伴生类"></a>伴生对象和伴生类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">object ApplyApp &#123;</span><br><span class="line"></span><br><span class="line">  def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    val apply &#x3D; ApplyTest()  &#x2F;&#x2F;调用得是object的apply</span><br><span class="line">    val test &#x3D; new ApplyTest</span><br><span class="line">    test()  &#x2F;&#x2F;调用的是class的apply</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;**</span><br><span class="line">    * object是class的伴生对象</span><br><span class="line">    * class是object的伴生类</span><br><span class="line">    * 类名()&#x3D;&gt;object apply</span><br><span class="line">    * 对象名()&#x3D;&gt;class apply</span><br><span class="line">    *&#x2F;</span><br><span class="line">  object ApplyTest&#123;</span><br><span class="line">    println(&quot;进入object ApplyTest&quot;)</span><br><span class="line">    val name&#x3D;&quot;name&quot;</span><br><span class="line"></span><br><span class="line">    def test()&#x3D;&#123;</span><br><span class="line">      println(&quot;test&quot;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    def apply(): Unit &#x3D;&#123;</span><br><span class="line">      println(&quot;object apply&quot;)</span><br><span class="line">      new ApplyTest</span><br><span class="line">    &#125;</span><br><span class="line">    println(&quot;退出object ApplyTest&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  class ApplyTest&#123;</span><br><span class="line">    def apply(): Unit &#x3D;&#123;</span><br><span class="line">      println(&quot;class apply&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Trait"><a href="#Trait" class="headerlink" title="Trait"></a>Trait</h2><p>Scala的Trait相当于Java里的Interface，但Trait不仅可以定义函数，还可以有函数体实现。实现关键词是extends，实现多个Trait用with。当extends的多个Trait里有相同函数时，子类必须重写该函数。</p>
+<ul>
+<li>父trait里无函数体的函数，子类必须override</li>
+<li>重写父类里有函数体的函数，必须有关键词override</li>
+<li>trait里的变量，都是val类型</li>
+<li>在trait里定义的的变量，必须是val类型，如果变量没初始化，子类必须override</li>
+</ul>
+<p>建议看看Spark源码的Logging</p>
+<h2 id="case-class-case-object"><a href="#case-class-case-object" class="headerlink" title="case class/case object"></a>case class/case object</h2><ul>
+<li>case class必须要有参数列表，case object必须不能加参数列表</li>
+<li>class 和 case class的区别：<br><br>case class重写了toString，equals，hashCode<br><br>case class默认实现了序列化<br><br>case class不用new<br></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">object CaseClassApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    println(Dog(&quot;旺财&quot;).name)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">case class Dog(name:String)</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%BA%8C/" data-id="ckbhdlpr3003jc4ud7c887zo8" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%89/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Scala学习之三
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Scala学习之一</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

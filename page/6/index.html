@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="jumbotron">
+  <div class="video">
+    
+      <div class="video-frame">
+        <img src="/images/ocean/overlay-hero.png" alt="Decorative image frame">
+      </div>
+    
+    <div class="video-media">
+      <video playsinline="" autoplay="" loop="" muted="" data-autoplay=""
+             poster="/images/ocean/ocean.png" x5-video-player-type="h5">
+        <source src="/images/ocean/ocean.mp4" type="video/mp4">
+        <source src="/images/ocean/ocean.ogv" type="video/ogg">
+        <source src="/images/ocean/ocean.webm" type="video/webm">
+        <p>Your user agent does not support the HTML5 Video element.</p>
+      </video>
+      <div class="video-overlay"></div>
+    </div>
+    <div class="video-inner text-center text-white">
+      <h1><a href="/">趣随记</a></h1>
+      <p>2020平安</p>
+      <div><img src="/images/hexo-inverted.svg" class="brand" alt="趣随记"></div>
+    </div>
+    <div class="video-learn-more">
+      <a class="anchor" href="#landingpage"><i class="fe fe-mouse"></i></a>
+    </div>
+  </div>
+</section>
+
+<div id="landingpage">
+  <section class="outer">
+    <article class="articles">
+      
+      <h1 class="page-type-title"></h1>
+      
+        
+          <article id="post-Scala学习之一" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/">Scala学习之一</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/" class="article-date">
+  <time datetime="2018-09-10T03:23:00.000Z" itemprop="datePublished">2018-09-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Scala/">Scala</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h2 id="Scala概述"><a href="#Scala概述" class="headerlink" title="Scala概述"></a>Scala概述</h2><p>scala是一门多范式编程语言，集成了面向对象编程和函数式编程等多种特性。<br><br>scala运行在虚拟机上，并兼容现有的Java程序。<br><br>Scala源代码被编译成java字节码，所以运行在JVM上，并可以调用现有的Java类库。<br></p>
+<h2 id="值与变量"><a href="#值与变量" class="headerlink" title="值与变量"></a>值与变量</h2><p>在Scala中使用val/var来定义，val声明之后不可改变，类似于Java的final，而var反之。<br><br>val/var定义格式如下：<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#值：val</span><br><span class="line">val 名称:数据类型 &#x3D; 值</span><br><span class="line">#变量：var</span><br><span class="line">var 名称:数据类型 &#x3D; 值</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><p>Scala跟Java的数据类型差不多，下表就是常用的数据类型以及相关描述：</p>
+<table>
+<thead>
+<tr>
+<th align="center">数据类型</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Int</td>
+<td align="center">32位有符号补码整数。数值区间为 -2147483648 到 2147483647</td>
+</tr>
+<tr>
+<td align="center">Long</td>
+<td align="center">64位有符号补码整数。数值区间为 -9223372036854775808 到 9223372036854775807</td>
+</tr>
+<tr>
+<td align="center">Float</td>
+<td align="center">32位IEEE754单精度浮点数</td>
+</tr>
+<tr>
+<td align="center">Double</td>
+<td align="center">64位IEEE754单精度浮点数</td>
+</tr>
+<tr>
+<td align="center">Boolean</td>
+<td align="center">true或false</td>
+</tr>
+<tr>
+<td align="center">Unit</td>
+<td align="center">表示无值，和其他语言中void等同。用作不返回任何结果的方法的结果类型。</td>
+</tr>
+<tr>
+<td align="center">Null</td>
+<td align="center">null 或空引用</td>
+</tr>
+<tr>
+<td align="center">Nothing</td>
+<td align="center">Nothing类型在Scala的类层级的最低端；它是任何其他类型的子类型。</td>
+</tr>
+<tr>
+<td align="center">Any</td>
+<td align="center">Any是所有其他类的超类，相当于Java中Object</td>
+</tr>
+<tr>
+<td align="center">AnyRef</td>
+<td align="center">AnyRef类是Scala里所有引用类(reference class)的基类</td>
+</tr>
+<tr>
+<td align="center">AnyVal</td>
+<td align="center">AnyVal类是Scala里所有值类型(包括Unit，Boolean)的基类</td>
+</tr>
+</tbody></table>
+<p><strong>注意：Scala中提供了asInstanceOf[T]和isInstanceOf[T]两个方法，前者是数据类型转换，后者是判断是否是某种数据类型</strong></p>
+<h2 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h2><h3 id="while"><a href="#while" class="headerlink" title="while"></a>while</h3><p>与Java使用一样</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while (j &lt;&#x3D; Math.sqrt(i).asInstanceOf[Int] &amp;&amp; flag) &#123;</span><br><span class="line">      if (i % j &#x3D;&#x3D; 0) &#123;</span><br><span class="line">        flag &#x3D; false</span><br><span class="line">      &#125;</span><br><span class="line">      j &#x3D; j + 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="for"><a href="#for" class="headerlink" title="for"></a>for</h3><p>Scala使用for较多，方式也比较多<br><br>标准使用方式为<em>for (i &lt;- 表达式/数组/集合)</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">val array &#x3D; Array(1,2,3,4,5)</span><br><span class="line">for(ele &lt;- array) &#123;</span><br><span class="line">   println(ele)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>顺便介绍两种快速构造不可变的集合方法</p>
+<ul>
+<li>to 代表前闭后闭<br><br>1 to 10 =&gt; Range(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)</li>
+</ul>
+<ul>
+<li>until 代表前闭后开<br><br>1 until 10 =&gt; Range(1, 2, 3, 4, 5, 6, 7, 8, 9)</li>
+</ul>
+<h2 id="方法和函数"><a href="#方法和函数" class="headerlink" title="方法和函数"></a>方法和函数</h2><h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>定义方法：<strong>def 方法名(参数名:参数类型):返回类型={方法体}</strong>，如果你不想返回，返回类型就可以是Unit。scala默认最后一行当做返回值，不需要写return，scala也可以不写返回类型，会自动根据返回值类型推导。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def standard(x: Int, y: Int) &#x3D; &#123;</span><br><span class="line">  x + y</span><br><span class="line">&#125;</span><br><span class="line"># 方法体只有一行可以简化</span><br><span class="line">def standard(x: Int, y: Int) &#x3D; x + y</span><br></pre></td></tr></table></figure>
+<p>在大部分场景返回值可以Scala自身推导出来，但是对于递归调用的，一定要显式指明返回值类型，否则会报错。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def recursion(num: Int): Int &#x3D; &#123;</span><br><span class="line">  if (num &lt;&#x3D; 1) &#123;</span><br><span class="line">    1</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    num + recursion(num - 1)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="默认参数"><a href="#默认参数" class="headerlink" title="默认参数"></a>默认参数</h4><p>当你调用function不传参数时，方法体中使用的是默认值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def defaultParameters(param: String &#x3D; &quot;default&quot;) &#x3D; &#123;</span><br><span class="line">  println(param)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="可变参数"><a href="#可变参数" class="headerlink" title="可变参数"></a>可变参数</h4><p>只需要在参数后面加上*<br><br>如果你要把集合传入，请在其后加上:_*<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">  def variableParameters(nums: Int*) &#x3D; &#123;</span><br><span class="line">    var result &#x3D; 0</span><br><span class="line">    for (ele &lt;- nums) &#123;</span><br><span class="line">      result +&#x3D; ele</span><br><span class="line">    &#125;</span><br><span class="line">    result</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line"># 调用</span><br><span class="line">variableParameters(List(1,2,3,4,5):_*)</span><br><span class="line">variableParameters(1 to 10:_*)</span><br></pre></td></tr></table></figure>
+
+<h4 id="柯里化"><a href="#柯里化" class="headerlink" title="柯里化"></a>柯里化</h4><p>顺便介绍一下函数柯里化，在Scala源码和Spark源码到处都是，但是了解即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 函数柯里化定义</span><br><span class="line">def haskellCurry(x: Int)(y: Int) &#x3D; x + y</span><br></pre></td></tr></table></figure>
+<h3 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h3><p><strong>函数第一种定义：val/var 函数名称 = （参数列表） =&gt; {函数体}</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">val f1 &#x3D; (a: Int, b: Int) &#x3D;&gt; &#123;</span><br><span class="line">    a + b</span><br><span class="line">&#125;</span><br><span class="line"># 也可以简化成</span><br><span class="line">val f1 &#x3D; (a: Int, b: Int) &#x3D;&gt; a + b</span><br></pre></td></tr></table></figure>
+<p>函数第二种定义：val/var 函数名称：（输入参数类型） =&gt; 返回值类型  = （输入参数的引用） =&gt; {函数体}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val f2: (Int, Int) &#x3D;&gt; Int &#x3D; (a: Int, b: Int) &#x3D;&gt; a + b</span><br></pre></td></tr></table></figure>
+<p>明显第二种麻烦，只需要记住使用第一种就好。</p>
+<h3 id="方法和函数区别"><a href="#方法和函数区别" class="headerlink" title="方法和函数区别"></a>方法和函数区别</h3><p>方法的本质上就是一种特殊的函数<br><br><strong>方法用def定义，函数的标识=&gt;</strong><br></p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/" data-id="ckbhdlpr00036c4udgziv0uhb" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Hive复杂数据类型和分区表" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/07/19/Hive%E5%A4%8D%E6%9D%82%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%88%86%E5%8C%BA%E8%A1%A8/">Hive复杂数据类型和分区表</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/19/Hive%E5%A4%8D%E6%9D%82%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%88%86%E5%8C%BA%E8%A1%A8/" class="article-date">
+  <time datetime="2018-07-19T03:36:12.000Z" itemprop="datePublished">2018-07-19</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <h3 id="复杂数据类型"><a href="#复杂数据类型" class="headerlink" title="复杂数据类型"></a>复杂数据类型</h3><p>主要学习两方面：如何存/取数据</p>
+<h4 id="array"><a href="#array" class="headerlink" title="array"></a>array</h4><p>array要求数据类型必须一致，下列是例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 data]$ cat hive_array.txt </span><br><span class="line">zhangsan	beijing,shanghai,tianjin,hangzhou</span><br><span class="line">lisi	changchu,chengdu,wuhan,beijing</span><br><span class="line"></span><br><span class="line"># 存数据</span><br><span class="line">hive (ruozedata)&gt; create table hive_array(</span><br><span class="line">                &gt;  name string,</span><br><span class="line">                &gt;  work_place array&lt;string&gt;</span><br><span class="line">                &gt; )</span><br><span class="line">                &gt; row format delimited fields terminated by &#39;\t&#39;</span><br><span class="line">                &gt; COLLECTION ITEMS TERMINATED BY &#39;,&#39;;   &lt;-- 重点</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.074 seconds</span><br><span class="line">hive (ruozedata)&gt; load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;hive_array.txt&#39; overwrite into table hive_array;</span><br><span class="line">Loading data to table ruozedata.hive_array</span><br><span class="line">Table ruozedata.hive_array stats: [numFiles&#x3D;1, numRows&#x3D;0, totalSize&#x3D;81, rawDataSize&#x3D;0]</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.591 seconds</span><br><span class="line">hive (ruozedata)&gt; select * from hive_array;</span><br><span class="line">OK</span><br><span class="line">hive_array.name	hive_array.work_place</span><br><span class="line">zhangsan	[&quot;beijing&quot;,&quot;shanghai&quot;,&quot;tianjin&quot;,&quot;hangzhou&quot;]</span><br><span class="line">lisi	[&quot;changchu&quot;,&quot;chengdu&quot;,&quot;wuhan&quot;,&quot;beijing&quot;]</span><br><span class="line">Time taken: 0.054 seconds, Fetched: 2 row(s)</span><br><span class="line"></span><br><span class="line"># 取数据，下标从0开始</span><br><span class="line">hive (ruozedata)&gt; select work_place[0],work_place[10] from hive_array;</span><br><span class="line">OK</span><br><span class="line">_c0	_c1</span><br><span class="line">beijing	NULL</span><br><span class="line">changchu	NULL</span><br><span class="line">Time taken: 0.06 seconds, Fetched: 2 row(s)</span><br><span class="line"></span><br><span class="line"># 判断array是否还有指定数据</span><br><span class="line">hive (ruozedata)&gt; select * from hive_array where array_contains(work_place,&#39;tianjin&#39;);</span><br><span class="line">OK</span><br><span class="line">hive_array.name	hive_array.work_place</span><br><span class="line">zhangsan	[&quot;beijing&quot;,&quot;shanghai&quot;,&quot;tianjin&quot;,&quot;hangzhou&quot;]</span><br><span class="line"></span><br><span class="line"># array长度</span><br><span class="line">hive (ruozedata)&gt; select name,size(work_place) as num from hive_array;</span><br><span class="line">OK</span><br><span class="line">name	num</span><br><span class="line">zhangsan	4</span><br><span class="line">lisi	4</span><br><span class="line">Time taken: 0.04 seconds, Fetched: 2 row(s)</span><br></pre></td></tr></table></figure>
+
+<h4 id="map"><a href="#map" class="headerlink" title="map"></a>map</h4><p>map要求数据key,value类型必须为指定数据类型，下列是例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 data]$ cat hive_map.txt </span><br><span class="line">1,zhangsan,father:xiaoming#mother:xiaohuang#brother:xiaoxu,28</span><br><span class="line">2,lisi,father:mayun#mother:huangyi#brother:guanyu,22</span><br><span class="line">3,wangwu,father:wangjianlin#mother:ruhua#sister:jingtian,29</span><br><span class="line">4,mayun,father:mayongzhen#mother:angelababy,26</span><br><span class="line"></span><br><span class="line"># 存数据</span><br><span class="line">hive (ruozedata)&gt; create table hive_map(</span><br><span class="line">                &gt;  id int,</span><br><span class="line">                &gt;  name string,</span><br><span class="line">                &gt;  family map&lt;string,string&gt;,</span><br><span class="line">                &gt;  age int</span><br><span class="line">                &gt; )</span><br><span class="line">                &gt; row format delimited fields terminated by &#39;,&#39;</span><br><span class="line">                &gt; COLLECTION ITEMS TERMINATED BY &#39;#&#39;</span><br><span class="line">                &gt; MAP KEYS TERMINATED BY &#39;:&#39;;</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.068 seconds</span><br><span class="line">hive (ruozedata)&gt; load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;hive_map.txt&#39; overwrite into table hive_map;</span><br><span class="line">Loading data to table ruozedata.hive_map</span><br><span class="line">Table ruozedata.hive_map stats: [numFiles&#x3D;1, numRows&#x3D;0, totalSize&#x3D;222, rawDataSize&#x3D;0]</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.143 seconds</span><br><span class="line">hive (ruozedata)&gt; select * from hive_map;</span><br><span class="line">OK</span><br><span class="line">hive_map.id	hive_map.name	hive_map.family	hive_map.age</span><br><span class="line">1	zhangsan	&#123;&quot;father&quot;:&quot;xiaoming&quot;,&quot;mother&quot;:&quot;xiaohuang&quot;,&quot;brother&quot;:&quot;xiaoxu&quot;&#125;	28</span><br><span class="line">2	lisi	&#123;&quot;father&quot;:&quot;mayun&quot;,&quot;mother&quot;:&quot;huangyi&quot;,&quot;brother&quot;:&quot;guanyu&quot;&#125;	22</span><br><span class="line">3	wangwu	&#123;&quot;father&quot;:&quot;wangjianlin&quot;,&quot;mother&quot;:&quot;ruhua&quot;,&quot;sister&quot;:&quot;jingtian&quot;&#125;	29</span><br><span class="line">4	mayun	&#123;&quot;father&quot;:&quot;mayongzhen&quot;,&quot;mother&quot;:&quot;angelababy&quot;&#125;	26</span><br><span class="line">Time taken: 0.044 seconds, Fetched: 4 row(s)</span><br><span class="line"></span><br><span class="line"># 取数据</span><br><span class="line">hive (ruozedata)&gt; select name,size(family) as size,family[&#39;father&#39;] as father,family[&#39;sister&#39;] as sister,map_keys(family) as keys,map_values(family) as values from hive_map;</span><br><span class="line">OK</span><br><span class="line">name	size	father	sister	keys	values</span><br><span class="line">zhangsan	3	xiaoming	NULL	[&quot;father&quot;,&quot;mother&quot;,&quot;brother&quot;]	[&quot;xiaoming&quot;,&quot;xiaohuang&quot;,&quot;xiaoxu&quot;]</span><br><span class="line">lisi	3	mayun	NULL	[&quot;father&quot;,&quot;mother&quot;,&quot;brother&quot;]	[&quot;mayun&quot;,&quot;huangyi&quot;,&quot;guanyu&quot;]</span><br><span class="line">wangwu	3	wangjianlin	jingtian	[&quot;father&quot;,&quot;mother&quot;,&quot;sister&quot;]	[&quot;wangjianlin&quot;,&quot;ruhua&quot;,&quot;jingtian&quot;]</span><br><span class="line">mayun	2	mayongzhen	NULL	[&quot;father&quot;,&quot;mother&quot;]	[&quot;mayongzhen&quot;,&quot;angelababy&quot;]</span><br><span class="line">Time taken: 0.066 seconds, Fetched: 4 row(s)</span><br><span class="line"></span><br><span class="line"># 条件判断</span><br><span class="line">hive (ruozedata)&gt; select name,size(family) as size,family[&#39;father&#39;] as father,family[&#39;sister&#39;] as sister,map_keys(family) as keys,map_values(family) as values from hive_map where array_contains(map_keys(family),&#39;sister&#39;);</span><br><span class="line">OK</span><br><span class="line">name	size	father	sister	keys	values</span><br><span class="line">wangwu	3	wangjianlin	jingtian	[&quot;father&quot;,&quot;mother&quot;,&quot;sister&quot;]	[&quot;wangjianlin&quot;,&quot;ruhua&quot;,&quot;jingtian&quot;]</span><br><span class="line">Time taken: 0.034 seconds, Fetched: 1 row(s)</span><br></pre></td></tr></table></figure>
+
+<h4 id="struct"><a href="#struct" class="headerlink" title="struct"></a>struct</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 data]$ cat hive_struct.txt </span><br><span class="line">192.168.1.1#zhangsan:40</span><br><span class="line">192.168.1.2#lisi:50</span><br><span class="line">192.168.1.3#wangwu:60</span><br><span class="line">192.168.1.4#zhaoliu:70</span><br><span class="line"></span><br><span class="line"># 存数据</span><br><span class="line">hive (ruozedata)&gt; create table hive_struct(</span><br><span class="line">                &gt;  ip string,</span><br><span class="line">                &gt;  info struct&lt;name:string,age:int&gt;</span><br><span class="line">                &gt; )</span><br><span class="line">                &gt; row format delimited fields terminated by &#39;#&#39;</span><br><span class="line">                &gt; COLLECTION ITEMS TERMINATED BY &#39;:&#39;;</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.045 seconds</span><br><span class="line">hive (ruozedata)&gt; </span><br><span class="line">                &gt; load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;hive_struct.txt&#39; overwrite into table hive_struct;</span><br><span class="line">Loading data to table ruozedata.hive_struct</span><br><span class="line">Table ruozedata.hive_struct stats: [numFiles&#x3D;1, numRows&#x3D;0, totalSize&#x3D;88, rawDataSize&#x3D;0]</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.135 seconds</span><br><span class="line">hive (ruozedata)&gt; select * from hive_struct;</span><br><span class="line">OK</span><br><span class="line">hive_struct.ip	hive_struct.info</span><br><span class="line">192.168.1.1	&#123;&quot;name&quot;:&quot;zhangsan&quot;,&quot;age&quot;:40&#125;</span><br><span class="line">192.168.1.2	&#123;&quot;name&quot;:&quot;lisi&quot;,&quot;age&quot;:50&#125;</span><br><span class="line">192.168.1.3	&#123;&quot;name&quot;:&quot;wangwu&quot;,&quot;age&quot;:60&#125;</span><br><span class="line">192.168.1.4	&#123;&quot;name&quot;:&quot;zhaoliu&quot;,&quot;age&quot;:70&#125;</span><br><span class="line">Time taken: 0.042 seconds, Fetched: 4 row(s)</span><br><span class="line"></span><br><span class="line"># 取数据</span><br><span class="line">hive (ruozedata)&gt; select ip,info.name,info.age from hive_struct;</span><br><span class="line">OK</span><br><span class="line">ip	name	age</span><br><span class="line">192.168.1.1	zhangsan	40</span><br><span class="line">192.168.1.2	lisi	50</span><br><span class="line">192.168.1.3	wangwu	60</span><br><span class="line">192.168.1.4	zhaoliu	70</span><br><span class="line">Time taken: 0.047 seconds, Fetched: 4 row(s)</span><br></pre></td></tr></table></figure>
+
+<h3 id="分区表"><a href="#分区表" class="headerlink" title="分区表"></a>分区表</h3><p>hive的分区表是一张表，但是在数据存储在HDFS上不同目录里。真正的表的字段是不包含分区字段的，分区字段只是HDFS上的文件夹的名称。在HDFS上的数据存储目录tablename/partition_column=partition_value</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># 一级分区</span><br><span class="line">create table order_partiton(</span><br><span class="line"> order_no string,</span><br><span class="line"> order_time string</span><br><span class="line">)</span><br><span class="line">PARTITIONED BY (event_month string)</span><br><span class="line">row format delimited fields terminated by &#39;\t&#39;;</span><br><span class="line"></span><br><span class="line"># 加载数据之后，hdfs保存路径为order_partiton&#x2F;event_month&#x3D;2014-05</span><br><span class="line">load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;order_created.txt&#39; into table order_partiton PARTITION (event_month&#x3D;&#39;2014-05&#39;);	</span><br><span class="line"></span><br><span class="line"># 二级分区</span><br><span class="line">create table order_mulit_partiton(</span><br><span class="line">order_no string,</span><br><span class="line">order_time string</span><br><span class="line">)</span><br><span class="line">PARTITIONED BY (event_month string, step string)</span><br><span class="line">row format delimited fields terminated by &#39;\t&#39;;</span><br><span class="line"></span><br><span class="line">load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;order_created.txt&#39; into table order_mulit_partiton PARTITION (event_month&#x3D;&#39;2014-05&#39;, step&#x3D;&#39;1&#39;);</span><br></pre></td></tr></table></figure>
+<p>如果你直接在hive的分区表存放路径新建分区，并将数据放入其中，这样select不会显示你插入的数据的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"># 新建分区路径</span><br><span class="line">[hadoop@hadoop001 ~]$ hdfs dfs -mkdir -p &#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;ruozedata.db&#x2F;order_partition&#x2F;event_time&#x3D;2014-06</span><br><span class="line"># 放入数据</span><br><span class="line">[hadoop@hadoop001 ~]$ hdfs dfs -put &#x2F;home&#x2F;hadoop&#x2F;data&#x2F;order_created.txt  &#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;ruozedata.db&#x2F;order_partition&#x2F;event_time&#x3D;2014-06</span><br><span class="line"># 查看数据，并没呈现</span><br><span class="line">hive&gt; select * from order_partition where event_month&#x3D;&#39;2014-06&#39;;</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.124 seconds</span><br><span class="line"># 元数据查看并没该分区信息，所以呈现不出来</span><br><span class="line">mysql&gt; use ruozedata</span><br><span class="line">Database changed</span><br><span class="line">mysql&gt; select * from PARTITIONS;</span><br><span class="line">+---------+-------------+------------------+---------------------+-------+--------+</span><br><span class="line">| PART_ID | CREATE_TIME | LAST_ACCESS_TIME | PART_NAME        | SD_I | TBL_ID |</span><br><span class="line">+---------+-------------+------------------+---------------------+-------+--------+</span><br><span class="line">|    1  | 1528520920 |       0      | event_month&#x3D;2014-05 |  32  |  31   |</span><br><span class="line">+---------+-------------+------------------+---------------------+-------+--------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"> </span><br><span class="line">mysql&gt; select * from PARTITION_KEY_VALS;</span><br><span class="line">+---------+--------------+-------------+</span><br><span class="line">| PART_ID | PART_KEY_VAL | INTEGER_IDX |</span><br><span class="line">+---------+--------------+-------------+</span><br><span class="line">|   1   |   2014-05   |     0    |</span><br><span class="line">+---------+--------------+-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>这里有两种方法刷新元数据：</p>
+<ol>
+<li>MSCK REPAIR TABLE table_name<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">hive&gt; MSCK REPAIR TABLE order_partition;</span><br><span class="line">ok</span><br><span class="line">partitions not in metastore: order_partition:event_month&#x3D;2014-06</span><br><span class="line">(添加了这个分区表到元数据信息里面去)</span><br><span class="line">Repair: Added partition to metastore order_partition:event_month&#x3D;2014-06 </span><br><span class="line">Time taken:0.245 seconds,Fetched:2 row(s)</span><br><span class="line"></span><br><span class="line">但是这种方式生产上不推荐，会将刷新所有MySQL表里面的信息，</span><br><span class="line">如果有一张表已经存放好几年了，用这个命令去执行的话半天都反应不了。</span><br></pre></td></tr></table></figure></li>
+<li>ALTER TABLE order_partition ADD IF NOT EXISTS PARTITION (event_month=’2014-06’) <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 生产上常用</span><br><span class="line">hive (ruozedata)&gt; ALTER TABLE order_partition ADD IF NOT EXISTS PARTITION (event_month&#x3D;&#39;2014-06&#39;) </span><br><span class="line">hive (ruozedata)&gt; select * from order_partition where event_time&#x3D;&#39;2014-06&#39;;</span><br><span class="line">OK</span><br><span class="line">order_partition.order_id	order_partition.order_time	order_partition.event_time</span><br><span class="line">10703007267488	2014-06-01 06:01:12.334+01	2014-06</span><br><span class="line">10101043505096	2014-06-01 07:28:12.342+01	2014-06</span><br><span class="line">10103043509747	2014-06-01 07:50:12.33+01	2014-06</span><br><span class="line">10103043501575	2014-06-01 09:27:12.33+01	2014-06</span><br><span class="line">10104043514061	2014-06-01 09:03:12.324+01	2014-06</span><br><span class="line">Time taken: 0.204 seconds, Fetched: 5 row(s)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>在生产上，一般：数据经过清洗后存放在HDFS目录上，然后将目录的数据加载到分区表中。一般分为：静态加载和动态加载。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 静态加载</span><br><span class="line">insert into table emp_partition partition(deptno&#x3D;10)</span><br><span class="line">select empno,ename,job,mgr,hiredate,sal,comm from ruozedata_emp where deptno&#x3D;10;</span><br><span class="line"></span><br><span class="line"># 动态加载，要求partition中字段和select最后字段对应</span><br><span class="line"># 执行命令之前请set hive.exec.dynamic.partition.mode&#x3D;nonstrict;</span><br><span class="line">insert overwrite table emp_dynamic_partition partition(deptno)</span><br><span class="line">select empno,ename,job,mgr,hiredate,sal,comm,deptno from ruozedata_emp;</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/19/Hive%E5%A4%8D%E6%9D%82%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%88%86%E5%8C%BA%E8%A1%A8/" data-id="ckbhdlpqj001mc4ud04picg00" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Hive的函数-TopN通用解法-Beeline连接" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/07/18/Hive%E7%9A%84%E5%87%BD%E6%95%B0-TopN%E9%80%9A%E7%94%A8%E8%A7%A3%E6%B3%95-Beeline%E8%BF%9E%E6%8E%A5/">Hive的函数(json_tuple和parse_url_tuple)/topN通用解法/Beeline连接</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/18/Hive%E7%9A%84%E5%87%BD%E6%95%B0-TopN%E9%80%9A%E7%94%A8%E8%A7%A3%E6%B3%95-Beeline%E8%BF%9E%E6%8E%A5/" class="article-date">
+  <time datetime="2018-07-18T03:34:48.000Z" itemprop="datePublished">2018-07-18</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="json-tuple"><a href="#json-tuple" class="headerlink" title="json_tuple"></a>json_tuple</h3><p>创建一个只有一个string类型的字段来存放json数据的表，将下列类型数据load进表中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; select * from json limit 10;</span><br><span class="line">OK</span><br><span class="line">json.json</span><br><span class="line">&#123;&quot;movie&quot;:&quot;1193&quot;,&quot;rate&quot;:&quot;5&quot;,&quot;time&quot;:&quot;978300760&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;661&quot;,&quot;rate&quot;:&quot;3&quot;,&quot;time&quot;:&quot;978302109&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;914&quot;,&quot;rate&quot;:&quot;3&quot;,&quot;time&quot;:&quot;978301968&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;3408&quot;,&quot;rate&quot;:&quot;4&quot;,&quot;time&quot;:&quot;978300275&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;2355&quot;,&quot;rate&quot;:&quot;5&quot;,&quot;time&quot;:&quot;978824291&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;1197&quot;,&quot;rate&quot;:&quot;3&quot;,&quot;time&quot;:&quot;978302268&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;1287&quot;,&quot;rate&quot;:&quot;5&quot;,&quot;time&quot;:&quot;978302039&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;2804&quot;,&quot;rate&quot;:&quot;5&quot;,&quot;time&quot;:&quot;978300719&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;594&quot;,&quot;rate&quot;:&quot;4&quot;,&quot;time&quot;:&quot;978302268&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">&#123;&quot;movie&quot;:&quot;919&quot;,&quot;rate&quot;:&quot;4&quot;,&quot;time&quot;:&quot;978301368&quot;,&quot;userid&quot;:&quot;1&quot;&#125;</span><br><span class="line">Time taken: 0.043 seconds, Fetched: 10 row(s)</span><br></pre></td></tr></table></figure>
+<p>如何将json数据拆分出来呢？使用json_tuple函数能够简单处理这种事。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; select json_tuple(json,&#39;movie&#39;,&#39;rate&#39;,&#39;time&#39;,&#39;userid&#39;) </span><br><span class="line">                &gt; as (movie_id,rate,time,user_id)  from json limit 10;</span><br><span class="line">OK</span><br><span class="line">movie_id	rate	time	user_id</span><br><span class="line">1193	5	978300760	1</span><br><span class="line">661	3	978302109	1</span><br><span class="line">914	3	978301968	1</span><br><span class="line">3408	4	978300275	1</span><br><span class="line">2355	5	978824291	1</span><br><span class="line">1197	3	978302268	1</span><br><span class="line">1287	5	978302039	1</span><br><span class="line">2804	5	978300719	1</span><br><span class="line">594	4	978302268	1</span><br><span class="line">919	4	978301368	1</span><br><span class="line">Time taken: 0.038 seconds, Fetched: 10 row(s)</span><br><span class="line">hive (ruozedata)&gt;</span><br></pre></td></tr></table></figure>
+<p>针对上述例子，在生产上一般来说是要将time再次处理成时间戳/年/月/日等，新成一张大宽表，以便后续会用到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; select movie_id,rate,user_id,</span><br><span class="line">                &gt; from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;) as time,</span><br><span class="line">                &gt; year(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as year,</span><br><span class="line">                &gt; month(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as month,</span><br><span class="line">                &gt; day(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as day</span><br><span class="line">                &gt; from</span><br><span class="line">                &gt; (</span><br><span class="line">                &gt; select json_tuple(json,&#39;movie&#39;,&#39;rate&#39;,&#39;time&#39;,&#39;userid&#39;) as (movie_id,rate,time,user_id)  from json</span><br><span class="line">                &gt; ) t limit 10;</span><br><span class="line">OK</span><br><span class="line">movie_id	rate	user_id	time	year	month	day</span><br><span class="line">1193	5	1	2001-01-01 06:12:40	2001	1	1</span><br><span class="line">661	3	1	2001-01-01 06:35:09	2001	1	1</span><br><span class="line">914	3	1	2001-01-01 06:32:48	2001	1	1</span><br><span class="line">3408	4	1	2001-01-01 06:04:35	2001	1	1</span><br><span class="line">2355	5	1	2001-01-07 07:38:11	2001	1	7</span><br><span class="line">1197	3	1	2001-01-01 06:37:48	2001	1	1</span><br><span class="line">1287	5	1	2001-01-01 06:33:59	2001	1	1</span><br><span class="line">2804	5	1	2001-01-01 06:11:59	2001	1	1</span><br><span class="line">594	4	1	2001-01-01 06:37:48	2001	1	1</span><br><span class="line">919	4	1	2001-01-01 06:22:48	2001	1	1</span><br><span class="line">Time taken: 0.513 seconds, Fetched: 10 row(s)</span><br><span class="line"></span><br><span class="line"># 大宽表</span><br><span class="line">hive (ruozedata)&gt; create table rate_movie as</span><br><span class="line">		&gt; select movie_id,rate,user_id,</span><br><span class="line">                &gt; from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;) as time,</span><br><span class="line">                &gt; year(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as year,</span><br><span class="line">                &gt; month(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as month,</span><br><span class="line">                &gt; day(from_unixtime(cast(time as BIGINT),&#39;yyyy-MM-dd HH:mm:ss&#39;)) as day</span><br><span class="line">                &gt; from</span><br><span class="line">                &gt; (</span><br><span class="line">                &gt; select json_tuple(json,&#39;movie&#39;,&#39;rate&#39;,&#39;time&#39;,&#39;userid&#39;) as (movie_id,rate,time,user_id)  from json</span><br><span class="line">                &gt; ) t;</span><br></pre></td></tr></table></figure>
+
+<h3 id="parse-url-tuple"><a href="#parse-url-tuple" class="headerlink" title="parse_url_tuple"></a>parse_url_tuple</h3><p>创建一个只有一个string类型的字段来存放url数据的表，将下列类型数据load进表中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; create table url(url string);</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.093 seconds</span><br><span class="line">hive (ruozedata)&gt; load data local inpath &#39;&#x2F;home&#x2F;hadoop&#x2F;data&#x2F;url.txt&#39; overwrite into table url;</span><br><span class="line">Loading data to table ruozedata.url</span><br><span class="line">Table ruozedata.url stats: [numFiles&#x3D;1, numRows&#x3D;0, totalSize&#x3D;62, rawDataSize&#x3D;0]</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.332 seconds</span><br><span class="line">hive (ruozedata)&gt; select * from url;</span><br><span class="line">OK</span><br><span class="line">url.url</span><br><span class="line">http:&#x2F;&#x2F;www.ruozedata.com&#x2F;d7&#x2F;xxx.html?cookieid&#x3D;1234567&amp;a&#x3D;b&amp;c&#x3D;d   &lt;-- url数据</span><br><span class="line">Time taken: 0.064 seconds, Fetched: 1 row(s)</span><br></pre></td></tr></table></figure>
+<p>如何将url数据拆分出来呢？使用parse_url_tuple函数能够简单处理这种事。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; select parse_url_tuple(url, &#39;HOST&#39;, &#39;PATH&#39;, &#39;QUERY&#39;, &#39;QUERY:cookieid&#39;,&#39;QUERY:a&#39;) as (host,path,query,cookie_id,a) from url;</span><br><span class="line">OK</span><br><span class="line">host	path	query	cookie_id	a</span><br><span class="line">www.ruozedata.com	&#x2F;d7&#x2F;xxx.html	cookieid&#x3D;1234567&amp;a&#x3D;b&amp;c&#x3D;d	1234567	b</span><br><span class="line">Time taken: 0.056 seconds, Fetched: 1 row(s)</span><br></pre></td></tr></table></figure>
+
+<h3 id="topN通用解法"><a href="#topN通用解法" class="headerlink" title="topN通用解法"></a>topN通用解法</h3><p>以上面解析json出来的大宽表为例，求每个用户评分最高的三部电影。主要使用到Analytics函数ROW_NUMBER，它让同一分区的进行排名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hive (ruozedata)&gt; select user_id,movie_id,rate,time from</span><br><span class="line">                &gt; (</span><br><span class="line">                &gt; select user_id,movie_id,rate,time,row_number() over(partition by user_id order by rate desc) as r from rate_movie</span><br><span class="line">                &gt; ) t where r&lt;&#x3D;3;</span><br></pre></td></tr></table></figure>
+
+<h3 id="beeline连接"><a href="#beeline连接" class="headerlink" title="beeline连接"></a>beeline连接</h3><p>这里在beeline连接之前，必须先将hiveserver2启动。hiveserver2(HS2)是一种允许客户端对Hive执行查询的服务，只有先将这个服务启动，JDBC/beeline一类客户端才能访问。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"># 启动hs2</span><br><span class="line">[hadoop@hadoop001 bin]$ pwd</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hive&#x2F;bin</span><br><span class="line">[hadoop@hadoop001 bin]$ nohup .&#x2F;hiveserver2 &gt;&gt; &#x2F;tmp&#x2F;hs2.log 2&gt;&amp;1 &amp;   &lt;-- 后台运行</span><br><span class="line">[1] 20050      </span><br><span class="line">[hadoop@hadoop001 bin]$ tail -F &#x2F;tmp&#x2F;hs2.log </span><br><span class="line"></span><br><span class="line"># beeline连接，默认端口为10000</span><br><span class="line">[hadoop@hadoop001 bin]$ .&#x2F;beeline -u jdbc:hive2:&#x2F;&#x2F;hadoop001:10000&#x2F;ruozedata -n hadoop</span><br><span class="line">scan complete in 2ms</span><br><span class="line">Connecting to jdbc:hive2:&#x2F;&#x2F;hadoop001:10000&#x2F;ruozedata</span><br><span class="line">Connected to: Apache Hive (version 1.1.0-cdh5.7.0)</span><br><span class="line">Driver: Hive JDBC (version 1.1.0-cdh5.7.0)</span><br><span class="line">Transaction isolation: TRANSACTION_REPEATABLE_READ</span><br><span class="line">Beeline version 1.1.0-cdh5.7.0 by Apache Hive</span><br><span class="line">0: jdbc:hive2:&#x2F;&#x2F;hadoop001:10000&#x2F;ruozedata&gt; show databases;</span><br><span class="line">INFO  : Compiling command(queryId&#x3D;hadoop_20190721154040_ec4e3bd9-2a49-4d1c-bcc8-cd35afb5ff46): show databases</span><br><span class="line">INFO  : Semantic Analysis Completed</span><br><span class="line">INFO  : Returning Hive schema: Schema(fieldSchemas:[FieldSchema(name:database_name, type:string, comment:from deserializer)], properties:null)</span><br><span class="line">INFO  : Completed compiling command(queryId&#x3D;hadoop_20190721154040_ec4e3bd9-2a49-4d1c-bcc8-cd35afb5ff46); Time taken: 0.514 seconds</span><br><span class="line">INFO  : Concurrency mode is disabled, not creating a lock manager</span><br><span class="line">INFO  : Executing command(queryId&#x3D;hadoop_20190721154040_ec4e3bd9-2a49-4d1c-bcc8-cd35afb5ff46): show databases</span><br><span class="line">INFO  : Starting task [Stage-0:DDL] in serial mode</span><br><span class="line">INFO  : Completed executing command(queryId&#x3D;hadoop_20190721154040_ec4e3bd9-2a49-4d1c-bcc8-cd35afb5ff46); Time taken: 0.041 seconds</span><br><span class="line">INFO  : OK</span><br><span class="line">+----------------+--+</span><br><span class="line">| database_name  |</span><br><span class="line">+----------------+--+</span><br><span class="line">| default        |</span><br><span class="line">| ruozedata      |</span><br><span class="line">+----------------+--+</span><br><span class="line">2 rows selected (0.778 seconds)</span><br></pre></td></tr></table></figure>
+<p>如果你想改动默认连接端口10000，将下列代码放入hive-site.xml：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.server2.thrift.port&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;xxx&lt;&#x2F;value&gt;    &lt;--- 你想改的端口</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/18/Hive%E7%9A%84%E5%87%BD%E6%95%B0-TopN%E9%80%9A%E7%94%A8%E8%A7%A3%E6%B3%95-Beeline%E8%BF%9E%E6%8E%A5/" data-id="ckbhdlpqk001oc4udaosc6dze" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Hive之DML和DDL语句" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/">Hive之DML和DDL语句</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/" class="article-date">
+  <time datetime="2018-07-18T03:32:21.000Z" itemprop="datePublished">2018-07-18</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="creat-database"><a href="#creat-database" class="headerlink" title="creat database"></a>creat database</h3><p>官方语法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span><br><span class="line">[COMMENT database_comment]</span><br><span class="line">[LOCATION hdfs_path]</span><br><span class="line">[WITH DBPROPERTIES (property_name&#x3D;property_value, ...)];</span><br></pre></td></tr></table></figure>
+<p>语法与MySQL建库差不多，只是要注意的是，如果你不指定LOCATION属性，那么当前库将会存储在HDFS上的/user/hive/warehouse/database_name.db，如果你指定了那么库将会存储在你指定的路径。</p>
+<h3 id="drop-database"><a href="#drop-database" class="headerlink" title="drop database"></a>drop database</h3><p>官方语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DROP (DATABASE|SCHEMA) [IF EXISTS] database_name [RESTRICT|CASCADE];</span><br></pre></td></tr></table></figure>
+<p><strong>这里需要注意的是如果你要删除的库中有表的话，默认是不允许删除的，如果必须删除的话，请在语句后加入cascade，但是一定要慎用。</strong></p>
+<h3 id="create-table"><a href="#create-table" class="headerlink" title="create table"></a>create table</h3><p>官方语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name    -- (Note: TEMPORARY available in Hive 0.14.0 and later)</span><br><span class="line">  [(col_name data_type [COMMENT col_comment], ... [constraint_specification])]</span><br><span class="line">  [COMMENT table_comment]</span><br><span class="line">  [LOCATION hdfs_path]</span><br><span class="line">  [ROW FORMAT row_format] </span><br><span class="line">  [AS select_statement];   -- (Note: Available in Hive 0.5.0 and later; not supported for external tables)  &lt;-- 新表表结构和数据取绝于select后字段</span><br><span class="line"></span><br><span class="line">CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name</span><br><span class="line">  LIKE existing_table_or_view_name    &lt;-- 只是拷贝表结构不涉及到数据</span><br><span class="line">  [LOCATION hdfs_path];</span><br><span class="line"></span><br><span class="line">row_format</span><br><span class="line">  : DELIMITED [FIELDS TERMINATED BY char [ESCAPED BY char]]</span><br></pre></td></tr></table></figure>
+<p>需要注意的创建表默认是内部表，指定EXTERNAL则是外部表，<strong>两者的区别在于删除时内部表hdfs上数据和元数据都会被删除，外部表只删除元数据不会</strong>。</p>
+<h3 id="alter-table"><a href="#alter-table" class="headerlink" title="alter table"></a>alter table</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 改名</span><br><span class="line">ALTER TABLE table_name RENAME TO new_table_name;</span><br></pre></td></tr></table></figure>
+
+<h3 id="drop-table"><a href="#drop-table" class="headerlink" title="drop table"></a>drop table</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DROP TABLE [IF EXISTS] table_name [PURGE];     -- (Note: PURGE available in Hive 0.14.0 and later)</span><br></pre></td></tr></table></figure>
+
+<h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>官方用法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOAD DATA [LOCAL] INPATH &#39;filepath&#39; [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1&#x3D;val1, partcol2&#x3D;val2 ...)]</span><br></pre></td></tr></table></figure>
+<p><strong>local指的是Linux服务器上的路径，未指定则是hdfs的路径。</strong></p>
+<h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>官方用法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SELECT [ALL | DISTINCT] select_expr, select_expr, ...</span><br><span class="line">  FROM table_reference</span><br><span class="line">  [WHERE where_condition]</span><br><span class="line">  [GROUP BY col_list]</span><br><span class="line">  [ORDER BY col_list]</span><br><span class="line">  [CLUSTER BY col_list</span><br><span class="line">    | [DISTRIBUTE BY col_list] [SORT BY col_list]</span><br><span class="line">  ]</span><br><span class="line"> [LIMIT [offset,] rows]</span><br></pre></td></tr></table></figure>
+<p>select用法基本和MySQL一样，需要注意的就是ORDER BY/CLUSTER BY/DISTRIBUTE BY/SORT BY的区别。下列列举区别：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ORDER BY --&gt; 全局排序，转化成的MR会只有一个reduce，数据量大慎用</span><br><span class="line">SORT BY --&gt; 局部排序，生效范围只会在各个reduce内，如果reduce只有一个效果跟ORDER BY一样</span><br><span class="line">DISTRIBUTE BY --&gt; 按照一定的规则把数据分散到某个reducer，可能会造成数据倾斜</span><br><span class="line">CLUSTER BY --&gt; DISTRIBUTE BY + SORT BY</span><br></pre></td></tr></table></figure>
+
+<h3 id="导出"><a href="#导出" class="headerlink" title="导出"></a>导出</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">INSERT OVERWRITE LOCAL DIRECTORY &#39;xxx&#39;</span><br><span class="line">ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\t&#39;  </span><br><span class="line">SELECT * FROM xxx; </span><br><span class="line">或者</span><br><span class="line">EXPORT TABLE tablename [PARTITION (part_column&#x3D;&quot;value&quot;[, ...])]</span><br><span class="line">  TO &#39;export_target_path&#39; [ FOR replication(&#39;eventid&#39;) ]</span><br></pre></td></tr></table></figure>
+
+<h3 id="内置函数"><a href="#内置函数" class="headerlink" title="内置函数"></a>内置函数</h3><p>hive本身自带很多内置函数，不就一一介绍，我们掌握如何查看以及用法即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 查看全部函数</span><br><span class="line">show functions;</span><br><span class="line"># 不带例子的函数说明</span><br><span class="line">desc function 函数名;</span><br><span class="line"># 带例子的函数说明</span><br><span class="line">desc function extended 函数名;</span><br></pre></td></tr></table></figure>
+
+<h3 id="hive的wc统计"><a href="#hive的wc统计" class="headerlink" title="hive的wc统计"></a>hive的wc统计</h3><p>现有wc表，字段只有一个str，表类数据为如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">str</span><br><span class="line"></span><br><span class="line">hello   hello   hello</span><br><span class="line">world   world</span><br><span class="line">welcome</span><br></pre></td></tr></table></figure>
+<p>现在要进行wc统计，HQL该怎么写？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 主要思路就是将行变为列</span><br><span class="line">select word,count(1) as num from</span><br><span class="line">(</span><br><span class="line">select explode(split(sentence,&#39;\t&#39;)) as word from wc</span><br><span class="line">) a group by word;</span><br></pre></td></tr></table></figure>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/18/Hive%E4%B9%8BDML%E5%92%8CDDL%E8%AF%AD%E5%8F%A5/" data-id="ckbhdlpqg001cc4ud3be17r93" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Hive初识" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/07/17/Hive%E5%88%9D%E8%AF%86/">Hive初识</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/17/Hive%E5%88%9D%E8%AF%86/" class="article-date">
+  <time datetime="2018-07-17T03:33:28.000Z" itemprop="datePublished">2018-07-17</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="Hive是什么"><a href="#Hive是什么" class="headerlink" title="Hive是什么"></a>Hive是什么</h3><p>hive是用来解决海量结构化的日志数据统计问题的，一般是作为建立在Hadoop上的OLAP数据仓库。它是一个客户端，主要是将SQL转化成MR任务，特别适合离线处理。它有着类似于SQL的语法，上手难度小，最特别的是它有着统一的元数据管理便于其他组件也可以使用。</p>
+<h3 id="数据分布"><a href="#数据分布" class="headerlink" title="数据分布"></a>数据分布</h3><p>hive的数据主要分为两部分：数据以及元数据，元数据可以理解为MySQL的字段名称、表名一类的数据。<br>通常hive的元数据都是存储在MySQL中，数据就存在HDFS上。生产上一般存储元数据的MySQL会做主从复制，保证，元数据不丢。</p>
+<h3 id="Hive部署"><a href="#Hive部署" class="headerlink" title="Hive部署"></a>Hive部署</h3><ul>
+<li><p>下载</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ pwd</span><br><span class="line">&#x2F;home&#x2F;hadoop&#x2F;software</span><br><span class="line">[hadoop@hadoop001 software]$ wget http:&#x2F;&#x2F;archive.cloudera.com&#x2F;cdh5&#x2F;cdh&#x2F;5&#x2F;hive-1.1.0-cdh5.7.0.tar.gz</span><br></pre></td></tr></table></figure></li>
+<li><p>解压</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ tar -zxvf hive-1.1.0-cdh5.7.0.tar.gz</span><br><span class="line">[hadoop@hadoop001 software]$ ln -s &#x2F;home&#x2F;hadoop&#x2F;software&#x2F;hive-1.1.0-cdh5.7.0 &#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hive</span><br></pre></td></tr></table></figure></li>
+<li><p>配置环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 software]$ vim ~&#x2F;.bash_profile</span><br><span class="line">....</span><br><span class="line">export HIVE_HOME&#x3D;&#x2F;home&#x2F;hadoop&#x2F;app&#x2F;hive</span><br><span class="line">export PATH&#x3D;$&#123;HIVE_HOME&#125;&#x2F;bin:$PATH</span><br><span class="line">....</span><br></pre></td></tr></table></figure></li>
+<li><p>将MySQL-JDBC的jar包放在HIVE_HOME/lib</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">访问https:&#x2F;&#x2F;dev.mysql.com&#x2F;downloads&#x2F;connector&#x2F;j&#x2F;并下载mysql-connector-java-5.1.47.zip</span><br><span class="line">解压zip将mysql-connector-java-5.1.47.jar上传到HIVE_HOME&#x2F;lib下</span><br></pre></td></tr></table></figure></li>
+<li><p>安装MySQL<br>请看<a href="https://liverrrr.fun/archives/linux_mysql" target="_blank" rel="noopener">MySQL生产环境级别部署</a></p>
+</li>
+<li><p>修改hive-site.xml</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type&#x3D;&quot;text&#x2F;xsl&quot; href&#x3D;&quot;configuration.xsl&quot;?&gt;</span><br><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionURL&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;jdbc:mysql:&#x2F;&#x2F;localhost:3306&#x2F;ruozedata?createDatabaseIfNotExist&#x3D;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;元数据存储的url&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionDriverName&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;com.mysql.jdbc.Driver&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionUserName&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;root&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;javax.jdo.option.ConnectionPassword&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;root&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.cli.print.current.db&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;打印当前hive库名&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">  </span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.cli.print.header&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">  &lt;description&gt;打印当前hive表字段名&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"></span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure></li>
+<li><p>启动hive</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 ~]$ hive   直接回车</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="Hive默认属性"><a href="#Hive默认属性" class="headerlink" title="Hive默认属性"></a>Hive默认属性</h3><ol>
+<li>hive数据默认放在HDFS上的/user/hive/warehouse路径下，这个可以通过hive.metastore.warehouse.dir属性修改，只要在hive-site.xml中加入以下:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;hive.metastore.warehouse.dir&lt;&#x2F;name&gt;</span><br><span class="line">  &lt;value&gt;xxxx&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
+<li>hive默认进入的数据库叫做default，这个库在HDFS上就是hive.metastore.warehouse.dir所代表的路径。其他库也在其路径下，不过是以库名.db所命名的文件夹，hive所创建的表其实对应的就是对应库下的一个目录，默认文件的名字就是tablename。</li>
+<li>hive的日志是由$HIVE_HOME/conf/hive-log4j.properties的以下两个路径决定：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hive.log.dir&#x3D;$&#123;java.io.tmpdir&#125;&#x2F;$&#123;user.name&#125;  &lt;--就是&#x2F;tmp&#x2F;$&#123;username&#125;</span><br><span class="line">hive.log.file&#x3D;hive.log</span><br></pre></td></tr></table></figure></li>
+<li>如果要配置hive全局属性的话要在hive-site.xml配置才行，如果使用set 参数key=参数value的话，只在当前会话有效。当然这样hive –hiveconf k=v也行。</li>
+</ol>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/17/Hive%E5%88%9D%E8%AF%86/" data-id="ckbhdlpqi001ic4ud79251sy4" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Hive元数据结构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/">Hive元数据结构梳理</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
+  <time datetime="2018-07-16T03:30:39.000Z" itemprop="datePublished">2018-07-16</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>通常部署hive会将其元数据存储在外部数据库MySQL中，而元数据对于hive是极其重要的。本篇文章就是对hive的元数据有个简单的认识。</p>
+<h3 id="Hive版本元数据表"><a href="#Hive版本元数据表" class="headerlink" title="Hive版本元数据表"></a>Hive版本元数据表</h3><p>这张表虽然简单，但是其中数据极为重要。如果该表出现问题，根本进入不了Hive-Cli。比如该表不存在，当启动Hive-Cli时候，就会报错”Table ‘hive.version’ doesn’t exist”。</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">VER_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">SCHEMA_VERSION</td>
+<td align="center">版本</td>
+<td align="center">1.1.0</td>
+</tr>
+<tr>
+<td align="center">VERSION_COMMENT</td>
+<td align="center">版本说明</td>
+<td align="center">Set by MetaStore <a href="mailto:hadoop@192.168.0.3">hadoop@192.168.0.3</a></td>
+</tr>
+</tbody></table>
+<h3 id="hive数据库相关的元数据表"><a href="#hive数据库相关的元数据表" class="headerlink" title="hive数据库相关的元数据表"></a>hive数据库相关的元数据表</h3><h4 id="dbs"><a href="#dbs" class="headerlink" title="dbs"></a>dbs</h4><p>存储数据库相关信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">DB_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">DESC</td>
+<td align="center">描述</td>
+<td align="center">Default Hive database</td>
+</tr>
+<tr>
+<td align="center">DB_LOCATION_URI</td>
+<td align="center">存储地址</td>
+<td align="center">hdfs://hadoop001:9000/user/hive/warehouse/ruozedata.db</td>
+</tr>
+<tr>
+<td align="center">NAME</td>
+<td align="center">数据库名称</td>
+<td align="center">ruozedata</td>
+</tr>
+<tr>
+<td align="center">OWNER_NAME</td>
+<td align="center">数据库所有者用户名</td>
+<td align="center">hadoop</td>
+</tr>
+<tr>
+<td align="center">OWNER_TYPE</td>
+<td align="center">所有者角色</td>
+<td align="center">USER</td>
+</tr>
+</tbody></table>
+<h4 id="database-params"><a href="#database-params" class="headerlink" title="database_params"></a>database_params</h4><p>存储数据库的相关参数，在CREATE DATABASE时候用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span><br><span class="line">  [COMMENT database_comment]</span><br><span class="line">  [LOCATION hdfs_path]</span><br><span class="line">  [WITH DBPROPERTIES (property_name&#x3D;property_value, ...)];   &lt;--存储这里的参数</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">DB_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center">createdby</td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center">hadoop</td>
+</tr>
+</tbody></table>
+<h3 id="hive表和视图相关的元数据表"><a href="#hive表和视图相关的元数据表" class="headerlink" title="hive表和视图相关的元数据表"></a>hive表和视图相关的元数据表</h3><h4 id="tbls"><a href="#tbls" class="headerlink" title="tbls"></a>tbls</h4><p>保存表和视图相关基本信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CREATE_TIME</td>
+<td align="center">创建时间</td>
+<td align="center">1563203652</td>
+</tr>
+<tr>
+<td align="center">DB_ID</td>
+<td align="center">关联的数据库ID</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center">LAST_ACCESS_TIME</td>
+<td align="center">上次访问时间</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">OWNER</td>
+<td align="center">拥有者</td>
+<td align="center">hadoop</td>
+</tr>
+<tr>
+<td align="center">RETENTION</td>
+<td align="center">保留字段</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">SD_ID</td>
+<td align="center">序列化配置信息，对应SDS表中的SD_ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">TBL_NAME</td>
+<td align="center">表名</td>
+<td align="center">emp</td>
+</tr>
+<tr>
+<td align="center">TBL_TYPE</td>
+<td align="center">表类型</td>
+<td align="center">MANAGED_TABLE</td>
+</tr>
+<tr>
+<td align="center">VIEW_EXPANDED_TEXT</td>
+<td align="center">视图的详细HQL语句</td>
+<td align="center">select lxw1234.pt, lxw1234.pcid from liuxiaowen.lxw1234</td>
+</tr>
+<tr>
+<td align="center">VIEW_ORIGINAL_TEXT</td>
+<td align="center">视图的原始HQL语句</td>
+<td align="center">select * from lxw1234</td>
+</tr>
+</tbody></table>
+<h4 id="table-params"><a href="#table-params" class="headerlink" title="table_params"></a>table_params</h4><p>该表存储表/视图的属性信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[TBLPROPERTIES (property_name&#x3D;property_value, ...)]   </span><br><span class="line">-- (Note: Available in Hive 0.6.0 and later)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center">COLUMN_STATS_ACCURATE</td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center">true</td>
+</tr>
+</tbody></table>
+<h3 id="hive存储信息相关的元数据表"><a href="#hive存储信息相关的元数据表" class="headerlink" title="hive存储信息相关的元数据表"></a>hive存储信息相关的元数据表</h3><h4 id="sds"><a href="#sds" class="headerlink" title="sds"></a>sds</h4><p>该表保存文件存储的基本信息，如INPUT_FORMAT、OUTPUT_FORMAT、是否压缩等。<br><strong>与tbles相关联可获取表信息</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">SD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CD_ID</td>
+<td align="center">字段信息ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">INPUT_FORMAT</td>
+<td align="center">文件输入格式</td>
+<td align="center">org.apache.hadoop.mapred.TextInputFormat</td>
+</tr>
+<tr>
+<td align="center">IS_COMPRESSED</td>
+<td align="center">是否压缩</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">IS_STOREDASSUBDIRECTORIES</td>
+<td align="center">是否以子目录存储</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">LOCATION</td>
+<td align="center">存储路径</td>
+<td align="center">hdfs://hadoop001:9000/user/hive/warehouse/ruozedata.db/emp</td>
+</tr>
+<tr>
+<td align="center">NUM_BUCKETS</td>
+<td align="center">分桶数量</td>
+<td align="center">-1</td>
+</tr>
+<tr>
+<td align="center">OUTPUT_FORMAT</td>
+<td align="center">文件输出格式</td>
+<td align="center">org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat</td>
+</tr>
+<tr>
+<td align="center">SERDE_ID</td>
+<td align="center">序列化类ID，对应SERDES表</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<h4 id="sd-params"><a href="#sd-params" class="headerlink" title="sd_params"></a>sd_params</h4><p>存储属性信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">SD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h3 id="hive表相关元数据表"><a href="#hive表相关元数据表" class="headerlink" title="hive表相关元数据表"></a>hive表相关元数据表</h3><h4 id="columns-v2"><a href="#columns-v2" class="headerlink" title="columns_v2"></a>columns_v2</h4><p>表相关信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">CD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">COMMENT</td>
+<td align="center">注释</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">COLUMN_NAME</td>
+<td align="center">字段名称</td>
+<td align="center">comm</td>
+</tr>
+<tr>
+<td align="center">TYPE_NAME</td>
+<td align="center">字段类型</td>
+<td align="center">double</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">字段顺序</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<h3 id="hive分区相关元数据表"><a href="#hive分区相关元数据表" class="headerlink" title="hive分区相关元数据表"></a>hive分区相关元数据表</h3><h4 id="partitions"><a href="#partitions" class="headerlink" title="partitions"></a>partitions</h4><p>存储相关分区基本信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CREATE_TIME</td>
+<td align="center">创建时间</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">LAST_ACCESS_TIME</td>
+<td align="center">上次访问时间</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PART_NAME</td>
+<td align="center">分区名称</td>
+<td align="center">date=2019-08-13</td>
+</tr>
+<tr>
+<td align="center">SD_ID</td>
+<td align="center">元数据ID，对应SDS表</td>
+<td align="center">3</td>
+</tr>
+<tr>
+<td align="center">TBL_ID</td>
+<td align="center">表ID，对应TBLS表</td>
+<td align="center">5</td>
+</tr>
+</tbody></table>
+<h4 id="partition-params"><a href="#partition-params" class="headerlink" title="partition_params"></a>partition_params</h4><p>存储分区属性信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h4 id="partition-keys"><a href="#partition-keys" class="headerlink" title="partition_keys"></a>partition_keys</h4><p>存储分区的字段信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">表ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PKEY_COMMENT</td>
+<td align="center">分区字段注释</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PKEY_NAME</td>
+<td align="center">分区字段名称</td>
+<td align="center">date</td>
+</tr>
+<tr>
+<td align="center">PKEY_TYPE</td>
+<td align="center">分区字段数据类型</td>
+<td align="center">string</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">分区字段顺序</td>
+<td align="center">3</td>
+</tr>
+</tbody></table>
+<h4 id="partition-key-vals"><a href="#partition-key-vals" class="headerlink" title="partition_key_vals"></a>partition_key_vals</h4><p>存储分区的字段值</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PART_KEY_VAL</td>
+<td align="center">分区字段值</td>
+<td align="center">2019-08-13</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">分区字段顺序</td>
+<td align="center">3</td>
+</tr>
+</tbody></table>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckbhdlpqh001gc4udgkwp1i36" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+    </article>
+    
+  
+    
+      <nav class="page-nav">
+        <a class="extend prev" rel="prev" href="/page/5/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span>
+      </nav>
+    
+  </section>
+</div>
+
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-bar-chart"></i> <span id="busuanzi_value_site_pv"></span></li>
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Flink实战系列（五）之State |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Flink实战系列（五）之State&amp;Checkpoint" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Flink实战系列（五）之State
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/" class="article-date">
+  <time datetime="2020-04-16T02:47:02.000Z" itemprop="datePublished">2020-04-16</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：在Flink中有两种分类：Keyed State 和 Operator State，Keyed State 一般与 Keys 联合使用，不是 Keyed State 都叫做 Operator State。</p>
+<a id="more"></a>
+<h1 id="State"><a href="#State" class="headerlink" title="State"></a>State</h1><p><a name="XesCu"></a></p>
+<h2 id="State的分类"><a href="#State的分类" class="headerlink" title="State的分类"></a>State的分类</h2><p>在Flink中有两种分类：Keyed State 和 Operator State<br><a name="qgH9N"></a></p>
+<h3 id="Keyed-State"><a href="#Keyed-State" class="headerlink" title="Keyed State"></a>Keyed State</h3><p>Keyed State 一般与 Keys 联合使用，并且只能在 KeyStream 中的 function 和 operators 中使用。**Keyed State 可以被视作具有分区且每个分区都有 state 的 operator state。每个 key-state 在逻辑上可以看作为独一无二的 &lt;parallel-operator-instance, key&gt; 的键值对，由于每个 key 都“属于”每个并行执行的 key operator，所以可以简单也可以看作 &lt;operator, key&gt;。</p>
+<p>Keyed State 在Flink中被进一步被包装成为 Key Group，Key Group 是Flink能够重新分配 Keyed State 的最小单位，每个算子上的 Key Group 个数即为最大并发数（maxParallelism），在作业执行时，每个并行的子任务运行时会使用到一个或多个 Key Group。</p>
+<p><a name="RV3H1"></a></p>
+<h3 id="Operator-State"><a href="#Operator-State" class="headerlink" title="Operator State"></a>Operator State</h3><p><strong>不是 Keyed State 都叫做 Operator State，每个并行的 operator 子任务都有自己 operator state。</strong>在Flink中 <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/connectors/kafka.html" target="_blank" rel="noopener">Kafka Connector</a> 就是一个非常好的例子，它将每个并行的 Kafka consumer 所需的 top partitions 和 offset 的 Map键值对存放在 Operator State 中。当更改并行性时，operator state 支持在并行 operator 子任务之间重新分配状态。</p>
+<p><a name="i7LzU"></a></p>
+<h3 id="Raw-and-Managed-State"><a href="#Raw-and-Managed-State" class="headerlink" title="Raw and Managed State"></a>Raw and Managed State</h3><p><strong>Keyed State 和 Operator State 都有两种不同类型的State：managed 和 raw。</strong></p>
+<p>managed state 在Flink运行、内部使用的 hash table 或者是存放于外部的 RockDB 中时用各种数据格式来表示，例如：“ValueState”, “ListState”等，Flink会在运行时将它编码放入 checkpoints 中。</p>
+<p>raw state 是 operator 使用自己的数据格式，当 checkpoint 到达时会将其以连续的二进制形式写入 checkpoint 中，Flink 只会看见二进制数据不会认别这个 state。</p>
+<p>所有的数据流的 function 都可以使用 managed state，但是 raw state 只能用在自定义的 operator 中。Flink推荐更多使用 managed state 而不是 raw state，因为Flink在并行度改变的情况下能够自动重新分配 state，同时能够更好的内存管理。</p>
+<p><a name="59nvN"></a></p>
+<h2 id="使用Managed-Keyed-State"><a href="#使用Managed-Keyed-State" class="headerlink" title="使用Managed Keyed State"></a>使用Managed Keyed State</h2><p><strong>managed state 能够访问仅限于当前输入数据的 key 的不同类型 state，这就意味着这类 state 只能被 stream.keyBy 创建的 KeyStream 所使用。</strong></p>
+<p>下面给出可用的各类 state 以及相关的例子说明如何使用：</p>
+<ul>
+<li><code>ValueState&lt;T&gt;</code>：维护一个可以更新与访问的值(如上所述作用域就在输入数据Key上，也就是每个 Key 都会维护这个 state 值)，update(T) 方法能够使值更新，访问该值请用 T value()。</li>
+<li><code>ListState&lt;T&gt;</code>：维护一个 List 数组用于存放 state，你可以使用 add(T) 或者 addAll(T) 来添加值，Iterable<T> get() 用于遍历获取值，同时你可以使用 update(List<T>) 更新整个数组。</li>
+<li><code>ReduceState&lt;T&gt;</code>：维护一个代表所有添加到 state 值的聚合值，它只有 add(T) 方法同时在其中得指定 ReduceFunction 来更新聚合值。</li>
+<li><code>AggregatingState&lt;IN, OUT&gt;</code>：维护一个代表所有添加到 state 值的聚合值，但是它与 ReduceState 不同的是它允许聚合数据类型可以不同，它也是 add(IN) 方法同时在其中得指定 AggregateFunction 来更新聚合值。</li>
+<li><code>FoldingState&lt;T, ACC&gt;</code>: 维护一个代表所有添加到 state 值的聚合值，但是它与 ReduceState 不同的是它允许聚合数据类型可以不同，它也是 add(T) 方法同时在其中得指定 FoldFunction 来更新聚合值。</li>
+<li><code>MapState&lt;UK, UV&gt;</code>：维护一组映射键值对Map，可以将 key-value 键值对放入其中，然后使用 Iterable 获取整个 Map 中的值。你可以使用 put(UK,UV) 或者 putAll(UK,UV) 来添加键值对，运用 get(UK) 获得对应的值。除了 Iterable 来遍历，也可以使用entries()，keys() 和 values()。同时也提供 isEmpty() 方法来检查是否有键值对存在。</li>
+</ul>
+<p>所有类型的 state 都有 clear() 方法来清除当前 Key 的状态。</p>
+<p>注意 <strong>Flink 1.4中已弃用FoldingState和FoldingStateDescriptor，以后将完全删除它们。 请改用AggregatingState和AggregatingStateDescriptor。</strong></p>
+<p><strong>重要的是这些状态对象只会是上述状态接口的实例。state 不一定存储在内部，而是可以驻留在磁盘上或其他位置。 要记住的第二件事是，从状态中获得的值取决于输入元素的键。因此，如果涉及的键不同，则在用户函数的一次调用中获得的值可能与在另一次调用中获得的值不同。</strong><br />要获取状态，你必须创建一个 StateDescriptor。它用来保存状态的名称（我们将在后面看到，可以创建多个状态，并且它们必须具有唯一的名称，以便可以引用它们），状态所保存的值的类型以及可能存在用户指定的函数，例如ReduceFunction。根据要你想要访问的状态类型，可以创建 ValueStateDescriptor，ListStateDescriptor，ReducingStateDescriptor，FoldingStateDescriptor 或 MapStateDescriptor。</p>
+<p>状态是使用 RuntimeContext 访问的，因此只有在 _rich functions _中才可以使用。RichFunction 中可用 RuntimeContext 具有以下用于访问状态的方法：</p>
+<ul>
+<li><strong>ValueState getState(ValueStateDescriptor)</strong></li>
+<li><strong>ReducingState getReducingState(ReducingStateDescriptor)</strong></li>
+<li><strong>ListState getListState(ListStateDescriptor)</strong></li>
+<li><strong>AggregatingState&lt;IN, OUT&gt; getAggregatingState(AggregatingStateDescriptor&lt;IN, ACC, OUT&gt;)</strong></li>
+<li><strong>FoldingState&lt;T, ACC&gt; getFoldingState(FoldingStateDescriptor&lt;T, ACC&gt;)</strong></li>
+<li><strong>MapState&lt;UK, UV&gt; getMapState(MapStateDescriptor&lt;UK, UV&gt;)</strong></li>
+</ul>
+<br />
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">ExampleCountWindowAverageApp</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">val</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</span><br><span class="line"></span><br><span class="line">    env.fromCollection(<span class="type">List</span>(</span><br><span class="line">      (<span class="number">1</span>L, <span class="number">3</span>L),</span><br><span class="line">      (<span class="number">1</span>L, <span class="number">5</span>L),</span><br><span class="line">      (<span class="number">1</span>L, <span class="number">7</span>L),</span><br><span class="line">      (<span class="number">1</span>L, <span class="number">4</span>L),</span><br><span class="line">      (<span class="number">1</span>L, <span class="number">2</span>L))</span><br><span class="line">    ).keyBy(_._1)</span><br><span class="line">      .flatMap(<span class="keyword">new</span> <span class="type">CountWindowAverage</span>)</span><br><span class="line">      .print().setParallelism(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    env.execute(<span class="keyword">this</span>.getClass.getSimpleName)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">CountWindowAverage</span> <span class="keyword">extends</span> <span class="title">RichFlatMapFunction</span>[(<span class="type">Long</span>, <span class="type">Long</span>), (<span class="type">Long</span>, <span class="type">Float</span>)] </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//第一个值是个数，后面是具体累加值</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> sum: <span class="type">ValueState</span>[(<span class="type">Long</span>, <span class="type">Long</span>)] = _</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">open</span></span>(parameters: <span class="type">Configuration</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">      sum = getRuntimeContext.getState(</span><br><span class="line">        <span class="keyword">new</span> <span class="type">ValueStateDescriptor</span>[(<span class="type">Long</span>, <span class="type">Long</span>)](<span class="string">"average"</span>, createTypeInformation[(<span class="type">Long</span>, <span class="type">Long</span>)])</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">flatMap</span></span>(input: (<span class="type">Long</span>, <span class="type">Long</span>), out: <span class="type">Collector</span>[(<span class="type">Long</span>, <span class="type">Float</span>)]): <span class="type">Unit</span> = &#123;</span><br><span class="line">      <span class="comment">//获取当前状态的值，如果从来没使用过则赋予(0L,0L)</span></span><br><span class="line">      <span class="keyword">val</span> currentSum = <span class="keyword">if</span> (sum.value() != <span class="literal">null</span>) &#123;</span><br><span class="line">        sum.value()</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        (<span class="number">0</span>L, <span class="number">0</span>L)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">val</span> newSum = (currentSum._1 + <span class="number">1</span>, input._2 + currentSum._2)</span><br><span class="line">      sum.update(newSum)</span><br><span class="line"></span><br><span class="line">      <span class="comment">//个数达到2就做一次取平均值</span></span><br><span class="line">      <span class="keyword">if</span> (newSum._1 &gt;= <span class="number">2</span>) &#123;</span><br><span class="line">        out.collect((input._1, newSum._2 / newSum._1.asInstanceOf[<span class="type">Float</span>]))</span><br><span class="line">        sum.clear()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br />
+<a name="XkpPA"></a>
+
+<h3 id="State过期时间-Time-To-Live"><a href="#State过期时间-Time-To-Live" class="headerlink" title="State过期时间(Time To Live)"></a>State过期时间(Time To Live)</h3><p>每个 Keyed State 的类型都支持TTL，其中集合类型的 State 支持按条目的TTL，这就意味着 List 和 Map State里的数据都是独立过期的。使用TTL之前必须创建一个 <strong>StateTtlConfig</strong> 对象，所有的TTL的方法都可以通过该对象在任何 state descriptor 里使用。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">StateTtlConfig</span></span><br><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">ValueStateDescriptor</span></span><br><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.time.<span class="type">Time</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> ttlConfig = <span class="type">StateTtlConfig</span></span><br><span class="line">    .newBuilder(<span class="type">Time</span>.seconds(<span class="number">1</span>))</span><br><span class="line">    .setUpdateType(<span class="type">StateTtlConfig</span>.<span class="type">UpdateType</span>.<span class="type">OnCreateAndWrite</span>)</span><br><span class="line">    .setStateVisibility(<span class="type">StateTtlConfig</span>.<span class="type">StateVisibility</span>.<span class="type">NeverReturnExpired</span>)</span><br><span class="line">    .build</span><br><span class="line">    </span><br><span class="line"><span class="keyword">val</span> stateDescriptor = <span class="keyword">new</span> <span class="type">ValueStateDescriptor</span>[<span class="type">String</span>](<span class="string">"text state"</span>, classOf[<span class="type">String</span>])</span><br><span class="line">stateDescriptor.enableTimeToLive(ttlConfig)</span><br></pre></td></tr></table></figure>
+
+<p>这个 configuration 有几个选项需要说明：</p>
+<ul>
+<li><p>newBuilder 是必须使用的，传入的参数就是过期时间</p>
+</li>
+<li><p>关于何时刷新 state TTL 时间，提供以下两种类型(默认是OnCreateAndWrite)：</p>
+<pre><code>`StateTtlConfig.UpdateType.OnCreateAndWrite` - 只有创建和写操作才更新&lt;br /&gt;         `StateTtlConfig.UpdateType.OnReadAndWrite` - 只有读操作才更新</code></pre></li>
+<li><p>state visibility 配置选项是如果尚未清除过期值，则在读取访问时是否返回该过期值：</p>
+<pre><code>`StateTtlConfig.StateVisibility.NeverReturnExpired` - 过期值不会被读取&lt;br /&gt;         `StateTtlConfig.StateVisibility.ReturnExpiredIfNotCleanedUp` - 如果没被清理就能读取</code></pre></li>
+</ul>
+<p>注意 </p>
+<ul>
+<li>状态后端将最后一次修改的时间戳与用户值一起存储，这意味着启用此功能会增加状态存储的消耗。堆状态后端将附加的Java对象与对用户状态对象的引用以及原始的时间戳 long 值一起存储在内存中。RocksDB 状态后端为每个存储的值，List 或 Map 每个数据中添加8个字节。</li>
+<li>TTL 现在仅支持 <em>processing time</em></li>
+<li>恢复之前未配置TTL的 state 时，如果你使用开启 TTL 的 descriptor时会导致兼容性失败和 StateMigrationException 异常 </li>
+<li>TTL 配置不是检查点或保存点的一部分，而是Flink在当前正在运行的作业中如何对待它的一种方式。</li>
+<li>仅当用户的值序列化程序可以处理空值时，带有TTL的映射状态当前支持空用户值。如果序列化器不支持空值，则可以使用NullableSerializer对其进行包装，但要以序列化形式增加一个字节。</li>
+</ul>
+<br />
+<a name="HwZic"></a>
+
+<h3 id="清理过期State"><a href="#清理过期State" class="headerlink" title="清理过期State"></a>清理过期State</h3><p>默认情况下，过期的值会在读取时显式删除，例如 ValueState 的 value，如果配置的状态后端支持，则会定期在后台垃圾回收。后台清理禁用可以在 StateTtlConfig 设置：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">StateTtlConfig</span></span><br><span class="line"><span class="keyword">val</span> ttlConfig = <span class="type">StateTtlConfig</span></span><br><span class="line">    .newBuilder(<span class="type">Time</span>.seconds(<span class="number">1</span>))</span><br><span class="line">    .disableCleanupInBackground</span><br><span class="line">    .build</span><br></pre></td></tr></table></figure>
+
+<p>要对后台的某些特殊清理进行更细粒度的控制，可以按如下所述分别进行配置。当前，堆状态后端依赖于增量清理，而 RocksDB 后端使用压缩过滤器进行后台清理。</p>
+<p><a name="XUUWS"></a></p>
+<h4 id="清理所有快照"><a href="#清理所有快照" class="headerlink" title="清理所有快照"></a>清理所有快照</h4><p>此外，您可以在保存完整状态快照时激活清除操作，这将减小其大小。在当前实现下不会清除本地状态，但是如果从先前的快照还原，则不会包括已删除的过期状态。这个可以在 StateTtlConfig 中配置：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">StateTtlConfig</span></span><br><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.time.<span class="type">Time</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> ttlConfig = <span class="type">StateTtlConfig</span></span><br><span class="line">    .newBuilder(<span class="type">Time</span>.seconds(<span class="number">1</span>))</span><br><span class="line">    .cleanupFullSnapshot</span><br><span class="line">    .build</span><br></pre></td></tr></table></figure>
+
+<p>此选项不适用于RocksDB状态后端中的增量检查点。<strong>对于现有作业，可以在 StateTtlConfig 中随时激活或取消激活此清理策略，例如从保存点重新启动后。</strong><br /><br><a name="QpY3d"></a></p>
+<h4 id="增量清除"><a href="#增量清除" class="headerlink" title="增量清除"></a>增量清除</h4><p>另一个选择是逐步触发某些状态条目的清除。触发器可以是来自每个状态访问或/和每个记录处理的回调触发。如果此清理策略在特定状态下处于活动状态，则存储后端将在其所有条目上为此状态保留一个惰性全局迭代器。每次触发增量清理时，迭代器都会检查遍历的状态条目，并清理过期的条目。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">StateTtlConfig</span></span><br><span class="line"><span class="keyword">val</span> ttlConfig = <span class="type">StateTtlConfig</span></span><br><span class="line">    .newBuilder(<span class="type">Time</span>.seconds(<span class="number">1</span>))</span><br><span class="line">    .cleanupIncrementally(<span class="number">10</span>, <span class="literal">true</span>)</span><br><span class="line">    .build</span><br></pre></td></tr></table></figure>
+
+<p>此策略有两个参数。第一个定义了每次清理时要检查的状态条目数。第二个参数是一个标志位，用于表示是否在每条记录处理之后，都还额外触发清除逻辑。堆后端的默认后台清理会检查5个条目，而每个记录处理不会进行清理。</p>
+<p>注意</p>
+<ul>
+<li>如果对该状态没有访问权限或未处理任何记录，则过期状态将继续存在。</li>
+<li>用于增量清理的时间会增加记录处理的延迟。</li>
+<li>目前，仅对堆状态后端实施增量清理。 为 RocksDB 设置它不会生效。</li>
+<li>如果将堆状态后端与同步快照一起使用，则全局迭代器将在迭代时保留所有键的副本，这是因为其特定的实现不支持并发修改。 启用此功能将增加内存消耗。 异步快照没有此问题。</li>
+<li>对于现有作业，可以在 StateTtlConfig 中随时激活或取消激活此清理策略，例如从保存点重新启动后。</li>
+</ul>
+<p><a name="HeTJL"></a></p>
+<h4 id="在RocksDB压缩时清除"><a href="#在RocksDB压缩时清除" class="headerlink" title="在RocksDB压缩时清除"></a>在RocksDB压缩时清除</h4><p>如果使用 RocksDB 状态后端，则将调用 Flink 特定的压缩过滤器进行后台清理。RocksDB 定期运行异步压缩以合并状态更新并减少存储。Flink 压缩过滤器使用 TTL 检查状态条目的过期时间戳，并排除过期值。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.common.state.<span class="type">StateTtlConfig</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> ttlConfig = <span class="type">StateTtlConfig</span></span><br><span class="line">    .newBuilder(<span class="type">Time</span>.seconds(<span class="number">1</span>))</span><br><span class="line">    .cleanupInRocksdbCompactFilter(<span class="number">1000</span>)</span><br><span class="line">    .build</span><br></pre></td></tr></table></figure>
+
+<p>RocksDB 压缩过滤器每次在处理了一定数量的状态条目后，都会从Flink查询当前时间戳，以检查到期时间。更频繁地更新时间戳可以提高清除速度，但由于使用本地代码中的JNI调用，因此会降低压缩性能。每次处理1000个条目时，RocksDB后端的默认后台清理都会查询当前时间戳。</p>
+<p>注意</p>
+<ul>
+<li>压缩期间调用 TTL 过滤器会使速度变慢。TTL 过滤器必须解析上次访问的时间戳，并针对每个要压缩的键的每个存储状态条目检查其到期时间。如果是收集状态类型（列表或映射），则还将针对每个存储的元素调用检查。</li>
+<li>如果此功能与列表状态一起使用，该列表状态的元素具有不固定的字节长度，则本机TTL筛选器必须至少在每个第一个状态元素过期的每个状态项上，通过JNI额外调用该元素的Flink Java类型序列化器。 确定下一个未过期元素的偏移量。</li>
+<li>对于现有作业，可以在StateTtlConfig中随时激活或取消激活此清理策略，例如从保存点重新启动后。</li>
+</ul>
+<p><a name="rpdNz"></a></p>
+<h2 id="使用Managed-Operator-State"><a href="#使用Managed-Operator-State" class="headerlink" title="使用Managed Operator State"></a>使用Managed Operator State</h2><p>使用 Operator State 必须使得其方法实现 Checkpoint Function 接口或者 ListCheckpointed<T extends Serializable> 接口。<br><a name="VN8DB"></a></p>
+<h3 id="CheckpointedFunction"><a href="#CheckpointedFunction" class="headerlink" title="CheckpointedFunction"></a>CheckpointedFunction</h3><p>最主要是实现以下两个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">void snapshotState(FunctionSnapshotContext context) throws Exception;</span><br><span class="line"></span><br><span class="line">void initializeState(FunctionInitializationContext context) throws Exception;</span><br></pre></td></tr></table></figure>
+
+<p>每当必须执行检查点时，都会调用 snapshotState() 方法。相对应的，每次初始化用户定义的函数时，都会调用对应的 initializeState()，无论是首次初始化该函数时，还是该函数实际上是从较早的检查点恢复时。鉴于此，  initializeState() 不仅是初始化不同类型的状态的地方，而且还是包含状态恢复逻辑的地方。</p>
+<p>当前支持 list 的 Managed Operator State，该状态应为彼此独立的可序列化对象的列表，因此非常适合在重新缩放后进行重新分配。换句话说，这些对象是可以重新分配 non-key state 的最佳粒度。</p>
+<p>根据状态访问方法来定义了以下重新分配方案：</p>
+<ul>
+<li>Even-split redistribution：每个运算符都返回一个状态元素列表。从逻辑上讲，整个状态是所有列表的串联。 在还原/重新分发时，该列表被平均分为与并行度一样多的子列表。每个运算符都有一个子列表，该子列表可以为空，也可以包含一个或多个元素。例如，如果在并行度为1的情况下，运算符的检查点状态包含元素 element1 和 element2，则在将并行度提高为2时，element1 可能以运算符实例0结尾，而 element2 将进入运算符实例1。</li>
+<li>Union redistribution：每个运算符都返回一个状态元素列表。从逻辑上讲，整个状态是所有列表的串联。在还原/重新分发时，每个 operator 都会获得状态元素的完整列表。</li>
+</ul>
+<p>以下是 State SinkFunction 的示例，该示例使用 CheckpointedFunction 缓冲元素发送到外界。它演示了一个基本 even-split redistribution 的 list 状态：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BufferingSink</span>(<span class="params">threshold: <span class="type">Int</span> = 0</span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">SinkFunction</span>[(<span class="type">String</span>, <span class="type">Int</span>)]</span></span><br><span class="line"><span class="class">    <span class="keyword">with</span> <span class="title">CheckpointedFunction</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@transient</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> checkpointedState: <span class="type">ListState</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = _</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> bufferedElements = <span class="type">ListBuffer</span>[(<span class="type">String</span>, <span class="type">Int</span>)]()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">invoke</span></span>(value: (<span class="type">String</span>, <span class="type">Int</span>), context: <span class="type">Context</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">    bufferedElements += value</span><br><span class="line">    <span class="keyword">if</span> (bufferedElements.size == threshold) &#123;</span><br><span class="line">      <span class="keyword">for</span> (element &lt;- bufferedElements) &#123;</span><br><span class="line">        <span class="comment">// send it to the sink</span></span><br><span class="line">      &#125;</span><br><span class="line">      bufferedElements.clear()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">snapshotState</span></span>(context: <span class="type">FunctionSnapshotContext</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">    checkpointedState.clear()</span><br><span class="line">    <span class="keyword">for</span> (element &lt;- bufferedElements) &#123;</span><br><span class="line">      checkpointedState.add(element)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">initializeState</span></span>(context: <span class="type">FunctionInitializationContext</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">val</span> descriptor = <span class="keyword">new</span> <span class="type">ListStateDescriptor</span>[(<span class="type">String</span>, <span class="type">Int</span>)](</span><br><span class="line">      <span class="string">"buffered-elements"</span>,</span><br><span class="line">      <span class="type">TypeInformation</span>.of(<span class="keyword">new</span> <span class="type">TypeHint</span>[(<span class="type">String</span>, <span class="type">Int</span>)]() &#123;&#125;)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    checkpointedState = context.getOperatorStateStore.getListState(descriptor)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(context.isRestored) &#123;</span><br><span class="line">      <span class="keyword">for</span>(element &lt;- checkpointedState.get()) &#123;</span><br><span class="line">        bufferedElements += element</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>⚠️请注意与 keyed state 类似，如何使用 StateDescriptor 初始化状态，该 StateDescriptor 包含状态名称和有关该状态所保存的值的类型的信息：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> descriptor = <span class="keyword">new</span> <span class="type">ListStateDescriptor</span>[(<span class="type">String</span>, <span class="type">Long</span>)](</span><br><span class="line">    <span class="string">"buffered-elements"</span>,</span><br><span class="line">    <span class="type">TypeInformation</span>.of(<span class="keyword">new</span> <span class="type">TypeHint</span>[(<span class="type">String</span>, <span class="type">Long</span>)]() &#123;&#125;)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">checkpointedState = context.getOperatorStateStore.getListState(descriptor)</span><br></pre></td></tr></table></figure>
+
+<p>状态访问方法的命名约定包含其重新分配模式及其状态结构。例如，要在恢复时将列表状态与 union redistribution方案一起使用，请使用 getUnionListState（descriptor）访问状态。 如果方法名称不包含重新分配模式，例如 getListState（descriptor），它只是将使用基本的 even-split redistribution 方案。</p>
+<p><a name="7Ydiz"></a></p>
+<h3 id="ListCheckpointed"><a href="#ListCheckpointed" class="headerlink" title="ListCheckpointed"></a>ListCheckpointed</h3><p>ListCheckpointed 接口是 CheckpointedFunction 的更有限的变体，它仅支持 list 状态以及还原时的 even-split redistribution 方案。 它还需要实现两种方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;T&gt; snapshotState(long checkpointId, long timestamp) throws Exception;</span><br><span class="line"></span><br><span class="line">void restoreState(List&lt;T&gt; state) throws Exception;</span><br></pre></td></tr></table></figure>
+
+<p>在snapshotState（）上，操作员应将对象列表返回到检查点，并且 restoreState 在恢复时必须处理此类列表。如果状态不可重新分区，则始终可以在snapshotState（）中返回Collections.singletonList（MY_STATE）。</p>
+<p><a name="OqXu3"></a></p>
+<h3 id="Stateful-Source-Functions"><a href="#Stateful-Source-Functions" class="headerlink" title="Stateful Source Functions"></a>Stateful Source Functions</h3><p>与其他 operator 相比，有 stateful source 需要多加注意。为了使状态和输出集合的更新成为原子性的（失败/恢复时仅需一次精确的语义），要求用户从源的上下文中获取锁。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterSource</span></span></span><br><span class="line"><span class="class">       <span class="keyword">extends</span> <span class="title">RichParallelSourceFunction</span>[<span class="type">Long</span>]</span></span><br><span class="line"><span class="class">       <span class="keyword">with</span> <span class="title">ListCheckpointed</span>[<span class="type">Long</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@volatile</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> isRunning = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> offset = <span class="number">0</span>L</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(ctx: <span class="type">SourceFunction</span>.<span class="type">SourceContext</span>[<span class="type">Long</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">val</span> lock = ctx.getCheckpointLock</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (isRunning) &#123;</span><br><span class="line">      <span class="comment">// output and state update are atomic</span></span><br><span class="line">      lock.synchronized(&#123;</span><br><span class="line">        ctx.collect(offset)</span><br><span class="line"></span><br><span class="line">        offset += <span class="number">1</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">cancel</span></span>(): <span class="type">Unit</span> = isRunning = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">restoreState</span></span>(state: util.<span class="type">List</span>[<span class="type">Long</span>]): <span class="type">Unit</span> =</span><br><span class="line">    <span class="keyword">for</span> (s &lt;- state) &#123;</span><br><span class="line">      offset = s</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">snapshotState</span></span>(checkpointId: <span class="type">Long</span>, timestamp: <span class="type">Long</span>): util.<span class="type">List</span>[<span class="type">Long</span>] =</span><br><span class="line">    <span class="type">Collections</span>.singletonList(offset)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 Flink 完全确认检查点以与外界进行通信时，某些 operator 可能需要这些信息。在这种情况下，请参见org.apache.flink.runtime.state.CheckpointListener 接口。</p>
+<p><a name="1TTya"></a></p>
+<h1 id="Checkpoint"><a href="#Checkpoint" class="headerlink" title="Checkpoint"></a>Checkpoint</h1><p>Flink的每个方法和操作都可以是有状态的，为了使得这些状态可以容错，Flink提供 checkpoint 来恢复数据流中的 state 和 position，以达到故障之前的运行状态。</p>
+<p>Flink使用 checkpoint 的两个前置要求：</p>
+<ul>
+<li>持久化且支持重播的数据源，例如持久化的消息中间件：Kafka、RabbitMQ、Kinesis等或者持久化的文件系统：HDFS、S3、GFS等等</li>
+<li>持久化存储state，典型的是分布式文件系统：HDFS、S3、GFS等等</li>
+</ul>
+<p><a name="enabling-and-configuring-checkpointing"></a></p>
+<h2 id="开启Checkpointing配置"><a href="#开启Checkpointing配置" class="headerlink" title="开启Checkpointing配置"></a>开启Checkpointing配置</h2><p>默认不开启checkpoint，为了能够开启必须使用 StreamExecutionEnvironment.enableCheckpointing(n)，这里的n代表就是 checkpoint 间隔。</p>
+<p>以下还有其他 checkpoint 的参数：</p>
+<ul>
+<li>exactly-once vs at-least-once：_exactly-one 是适合大多数作业，而 at-least-once 更适合低延迟作业。</li>
+<li>checkpoint timeout：_如果正在进行中的检查点当时尚未完成，则将被终止。</li>
+<li>minimum time between checkpoints：_为了确保流式应用程序在检查点之间进行一定量的进度，可以定义检查点之间需要经过多少时间。 如果将此值设置为例如5000，则下一个检查点将在前一个检查点完成后不超过5秒的时间内启动，而不管检查点持续时间和检查点间隔如何。请注意，这意味着检查点间隔永远不会小于此参数。通过定义“检查点之间的时间”而不是检查点间隔，通常更容易配置应用程序，因为“检查点之间的时间”不容易受到检查点有时可能花费比平均时间更长的事实的影响（例如，如果目标存储系统因为某些原因暂时变慢）。<strong>请注意，此值还表示并发检查点的数量为1。</strong></li>
+<li>number of concurrent checkpoints：_默认情况下，系统不会在仍在进行检查时触发另一个检查点。这样可以确保拓扑不会在检查点上花费太多时间，也不会在处理流方面取得进展。可以允许多个重叠的检查点，这对于具有一定处理延迟（例如，因为函数调用需要一些时间来响应的外部服务）但仍要执行非常频繁的检查点（100毫秒）的数据管道来说比较有意义，很少对失败进行重新处理。<strong>这个属性定义不能于_minimum time between checkpoints_同用。</strong></li>
+<li>externalized checkpoints：_您可以将定期检查点配置为在外部保留。外部化的检查点将其元数据写出到持久存储中，并且在作业失败时不会自动清除。这样，您将有一个检查点来恢复工作是否失败。</li>
+<li>fail/continue task on checkpoint errors：_如果在程序 checkpoint 执行中发生异常，作业默认状况下失败结束，当然你禁用该选项就跳过异常 checkpoing 继续运行。</li>
+<li>prefer checkpoint for recovery：_该选项这确定了即使有更多的最新 savepoint 可用来减少恢复时间，作业是否也将回退到最新的 checkpoint。</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment()</span><br><span class="line"></span><br><span class="line"><span class="comment">// start a checkpoint every 1000 ms</span></span><br><span class="line">env.enableCheckpointing(<span class="number">1000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// advanced options:</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// set mode to exactly-once (this is the default)</span></span><br><span class="line">env.getCheckpointConfig.setCheckpointingMode(<span class="type">CheckpointingMode</span>.<span class="type">EXACTLY_ONCE</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// make sure 500 ms of progress happen between checkpoints</span></span><br><span class="line">env.getCheckpointConfig.setMinPauseBetweenCheckpoints(<span class="number">500</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// checkpoints have to complete within one minute, or are discarded</span></span><br><span class="line">env.getCheckpointConfig.setCheckpointTimeout(<span class="number">60000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// prevent the tasks from failing if an error happens in their checkpointing, the checkpoint will just be declined.</span></span><br><span class="line">env.getCheckpointConfig.setFailTasksOnCheckpointingErrors(<span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// allow only one checkpoint to be in progress at the same time</span></span><br><span class="line">env.getCheckpointConfig.setMaxConcurrentCheckpoints(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p><a name="zJPDi"></a></p>
+<h3 id="相关配置选项"><a href="#相关配置选项" class="headerlink" title="相关配置选项"></a>相关配置选项</h3><p>可以通过 conf/flink-conf.yaml 设置更多的参数和/或默认值。</p>
+<table>
+<thead>
+<tr>
+<th align="left">配置项</th>
+<th align="left">默认值</th>
+<th align="left">类型</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">state.backend</td>
+<td align="left">(none)</td>
+<td align="left">String</td>
+<td align="left">用于存储和检查点状态的状态后端。</td>
+</tr>
+<tr>
+<td align="left">state.backend.async</td>
+<td align="left">true</td>
+<td align="left">Boolean</td>
+<td align="left">选择状态后端是否应在可能且可配置的情况下使用异步快照方法。某些状态后端可能不支持异步快照，或仅支持异步快照，并忽略此选项。</td>
+</tr>
+<tr>
+<td align="left">state.backend.fs.memory-threshold</td>
+<td align="left">1024</td>
+<td align="left">Integer</td>
+<td align="left">状态数据文件的最小大小。所有小于状态块的状态块都以内联方式存储在根检查点元数据文件中。</td>
+</tr>
+<tr>
+<td align="left">state.backend.fs.write-buffer-size</td>
+<td align="left">4096</td>
+<td align="left">Integer</td>
+<td align="left">写入文件系统的检查点流的写缓冲区的默认大小。 实际的写缓冲区大小确定为该选项和选项“ state.backend.fs.memory-threshold”的最大值。</td>
+</tr>
+<tr>
+<td align="left">state.backend.incremental</td>
+<td align="left">false</td>
+<td align="left">Boolean</td>
+<td align="left">选择状态后端是否应创建增量检查点（如果可能）。对于增量检查点，仅存储与前一个检查点的差异，而不存储完整的检查点状态。 某些状态后端可能不支持增量检查点，因此会忽略此选项。</td>
+</tr>
+<tr>
+<td align="left">state.backend.local-recovery</td>
+<td align="left">false</td>
+<td align="left">Boolean</td>
+<td align="left">此选项为此状态后端配置本地恢复。 默认情况下，本地恢复处于禁用状态。当前，本地恢复仅涵盖 keyed 状态后端。当前，MemoryStateBackend不支持本地恢复，请忽略此选项。</td>
+</tr>
+<tr>
+<td align="left">state.checkpoints.dir</td>
+<td align="left">(none)</td>
+<td align="left">String</td>
+<td align="left">用于在Flink支持的文件系统中存储检查点的数据文件和元数据的默认目录。所有参与的进程/节点（即所有TaskManager和JobManager）能够访问存储路径。</td>
+</tr>
+<tr>
+<td align="left">state.checkpoints.num-retained</td>
+<td align="left">1</td>
+<td align="left">Integer</td>
+<td align="left">保留的最大已完成检查点数。</td>
+</tr>
+<tr>
+<td align="left">state.savepoints.dir</td>
+<td align="left">(none)</td>
+<td align="left">String</td>
+<td align="left">保存点的默认目录。由状态后端用于将保存点写入文件系统（MemoryStateBackend，FsStateBackend，RocksDBStateBackend）。</td>
+</tr>
+<tr>
+<td align="left">taskmanager.state.local.root-dirs</td>
+<td align="left">(none)</td>
+<td align="left">String</td>
+<td align="left"><br />config参数定义用于存储基于文件的状态以进行本地恢复的根目录。当前，本地恢复仅涵盖 keyed 状态后端。 当前，MemoryStateBackend不支持本地恢复，请忽略此选项</td>
+</tr>
+</tbody></table>
+<p><a name="Ok618"></a></p>
+<h2 id="选择State-Backend"><a href="#选择State-Backend" class="headerlink" title="选择State Backend"></a>选择State Backend</h2><p>Flink的检查点机制将所有状态的一致快照存储在计时器和有状态运算符中，包括 connectot，窗口和任何用户定义的状态。检查点的存储位置（例如JobManager内存，文件系统，数据库）取决于配置的 state backend。</p>
+<p>默认情况下，状态保存在TaskManager的内存中，检查点保存在JobManager的内存中。 为了适当保留大状态，Flink支持在其他状态后端中存储和检查点状态的各种方法，可以通过StreamExecutionEnvironment.setStateBackend（…）配置状态后端的选择。</p>
+<p>现在 Flink 提供以下三类开箱即用的 state backend：</p>
+<ul>
+<li>MemoryStateBackend（默认）</li>
+<li>FsStateBackend</li>
+<li>RocksDBStateBackend</li>
+</ul>
+<p><a name="z8G3c"></a></p>
+<h3 id="MemoryStateBackend"><a href="#MemoryStateBackend" class="headerlink" title="MemoryStateBackend"></a>MemoryStateBackend</h3><p><strong>MemoryStateBackend 将数据内部转成对象存储在 Java Heap 上，Key/Value State 和窗口操作使用哈希表存储数据、触发器等</strong>。当 checkpoint 时，此状态后端将对该状态进行快照，并将其作为检查点确认消息的一部分发送给JobManager（主服务器），该JobManager也将其存储在其堆中。默认情况下，使用异步快照以避免堵塞。</p>
+<p>MemoryStateBackend的缺点：</p>
+<ul>
+<li>每个独立的 state 默认大小为5MB，也可以在 MemoryStateBackend 构造函数中重新指定。</li>
+<li>无论配置的最大状态大小如何，状态都不能大于 akka frame 大小。</li>
+<li>JobManager 内存中必须能够放下聚合类型的 state 大小。</li>
+</ul>
+<p>MemoryStateBackend的适用于以下场景：</p>
+<ul>
+<li>用于 debug 的单机部署</li>
+<li>几乎没有状态的作业，例如仅包含一次记录功能（Map，FlatMap，Filter等）的作业，Kafka 消费者也只需要很少的状态。</li>
+</ul>
+<p><a name="the-fsstatebackend"></a></p>
+<h3 id="FsStateBackend"><a href="#FsStateBackend" class="headerlink" title="FsStateBackend"></a>FsStateBackend</h3><p>FsStateBackend 的配置需要一个文件系统的URL，例如：hdfs://namenode:40010/flink/checkpoints 或者 file:///data/flink/checkpoints。<strong>FsStateBackend 会保持正在运行的状态数据在 TaskManager</strong>，在checkpoint 时，它会将快照写入文件放在所配置的文件系统的目录下。最小化的元数据存储在 JobManager 的内存中（或在高可用性模式下，存储在元数据检查点中）。默认情况下，使用异步快照以避免堵塞。</p>
+<p>FsStateBackend的适用于以下场景：</p>
+<ul>
+<li>具有大状态的作业，长窗口，大 Key/Value State。</li>
+<li>所有高可用性设置。</li>
+</ul>
+<br />
+<a name="the-rocksdbstatebackend"></a>
+### RocksDBStateBackend
+RocksDBStateBackend 的配置也需要一个文件系统的URL，例如：hdfs://namenode:40010/flink/checkpoints 或者 file:///data/flink/checkpoints。RocksDBStateBackend 将运行中状态数据放在（默认情况下）保存在TaskManager数据目录下 RocksDB 数据库中的，在checkpoint 时，它会将快照写入文件放在所配置的文件系统的目录下。最小化的元数据存储在 JobManager 的内存中（或在高可用性模式下，存储在元数据检查点中）。默认情况下，使用异步快照以避免堵塞。
+
+<p>MemoryStateBackend的缺点：</p>
+<ul>
+<li>由于 RocksDB 的 JNI 桥接 API 基于 byte []，因此每个键和每个值的最大支持大小为2个字节。重要说明：在 RocksDB 中使用合并操作的状态（例如ListState）其静默累积值大小&gt; 2字节，然后在下一次检索时将失败。目前，这是 RocksDB JNI 的限制。</li>
+</ul>
+<p>RocksDBStateBackend的适用于以下场景：</p>
+<ul>
+<li>具有大状态的作业，长窗口，大 Key/Value State。</li>
+<li>所有高可用性设置。</li>
+</ul>
+<p><strong>请注意，可以保留的状态量仅受可用磁盘空间量的限制。 与将状态保留在内存中的 FsStateBackend 相比，这可以保留非常大的状态。但是，这也意味着，使用此状态后端，可以实现的最大吞吐量将降低。从该后端进行的所有读/写都必须经过反序列化以检索/存储状态对象，这也比基于堆的后端在进行堆上表示时要昂贵得多。RocksDBStateBackend 当前是唯一提供增量 checkpoint 的后端。</strong><br /><br><a name="xjZoe"></a></p>
+<h2 id="配置State-Backend"><a href="#配置State-Backend" class="headerlink" title="配置State Backend"></a>配置State Backend</h2><p>Flink 提供两种配置 state backend 方式：</p>
+<ul>
+<li>全局配置</li>
+<li>单独配置<br><a name="setting-the-per-job-state-backend"></a><h3 id="作业单独配置State-Backend"><a href="#作业单独配置State-Backend" class="headerlink" title="作业单独配置State Backend"></a>作业单独配置State Backend</h3>每个作业的状态后端是在作业的 StreamExecutionEnvironment 上设置的，如下例所示：<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment()</span><br><span class="line">env.setStateBackend(<span class="keyword">new</span> <span class="type">FsStateBackend</span>(<span class="string">"hdfs://namenode:40010/flink/checkpoints"</span>))</span><br></pre></td></tr></table></figure>
+<br />如果要在 IDE 中使用 RocksDBStateBackend 或在 Flink 作业中以编程方式对其进行配置，则必须将以下依赖项添加到 Flink 项目中。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.flink&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;flink-statebackend-rocksdb_2.11&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;1.10.0&lt;&#x2F;version&gt;</span><br><span class="line">    &lt;scope&gt;provided&lt;&#x2F;scope&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+<br />注意：RocksDB 已经成为 Flink 一部分，无需将其依赖放入作业中。</li>
+</ul>
+<p><a name="setting-default-state-backend"></a></p>
+<h3 id="设置默认State-Backend"><a href="#设置默认State-Backend" class="headerlink" title="设置默认State Backend"></a>设置默认State Backend</h3><p>可以使用在 flink-conf.yaml 的 state.backend 配置项中配置默认状态后端。<strong>配置条目的可能值为jobmanager（MemoryStateBackend），文件系统（FsStateBackend），rocksdb（RocksDBStateBackend）或实现状态后端工厂StateBackendFactory的类的标准类名</strong>，例如RocksDBStateBackend 的org.apache.flink.contrib.streaming.state.RocksDBStateBackendFactory。state.checkpoints.dir 选项定义所有后端将检查点数据和元数据文件写入到的目录。</p>
+<p>简单配置如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># The backend that will be used to store operator state checkpoints</span><br><span class="line">state.backend: filesystem</span><br><span class="line"></span><br><span class="line"># Directory for storing checkpoints</span><br><span class="line">state.checkpoints.dir: hdfs:&#x2F;&#x2F;namenode:40010&#x2F;flink&#x2F;checkpoints</span><br></pre></td></tr></table></figure>
+
+<p><a name="JNStk"></a></p>
+<h1 id="Savepoint"><a href="#Savepoint" class="headerlink" title="Savepoint"></a>Savepoint</h1><p>savepoint 是通过 Flink 的检查点机制创建的流作业执行状态的一致快照。你可以使用保存点停止并恢复，更新 Flink 作业。 保存点由两部分组成：一个目录（在稳定存储中具有（通常是大）二进制文件，例如 HDFS，S3 等和一个（相对较小的）元数据文件。稳定存储中的文件代表作业的执行状态快照的净数据。保存点的元数据文件包含（主要）指向存储区中属于稳定点的所有文件的指针（以绝对路径的形式）。</p>
+<p><a name="what-is-a-savepoint-how-is-a-savepoint-different-from-a-checkpoint"></a></p>
+<h2 id="与Checkpoint不同"><a href="#与Checkpoint不同" class="headerlink" title="与Checkpoint不同"></a>与Checkpoint不同</h2><p>从概念上讲，Flink 的 savepoint 与 checkpoint 不同，Checkpoint 的主要目的是在意外的作业失败时提供一种恢复机制。Checkpoint 的生命周期由 Flink 管理，即 Checkpoint 由 Flink 创建，拥有和发布，无需用户交互。作为一种恢复和定期触发的方法，Checkpoint 实现的两个主要设计目标是：i）创建时轻巧； ii）尽可能快地恢复。针对这些目标的优化可以利用某些属性，例如在两次执行尝试之间作业代码不会更改。通常，用户终止作业后会丢弃检查点（除非明确配置为保留的检查点）。</p>
+<p>与所有这些相反，savepoint 是由用户创建，拥有和删除的。他们的用于计划的手动备份和恢复，例如，这可能是Flink版本的更新，更改了工作图，更改了并行性，派生了第二项工作（例如用于红色/蓝色部署）等等。当然，Savepoint必须在工作终止后继续生存。从概念上讲，保存点的生产和恢复成本可能会更高一些，并且更多地关注可移植性以及对先前提到的工作变更的支持。</p>
+<p>除了这些概念上的差异外，Checkpoints 和 Savepoints 的当前实现基本上使用相同的代码并产生相同的格式。但是，目前有一个例外，将来我们可能会引入更多差异。例外是带有 RocksDB 状态后端的增量检查点。他们使用的是 RocksDB 内部格式，而不是 Flink 的本机保存点格式。与Savepoints相比，这使它们成为更轻量级检查点机制的第一个实例。</p>
+<p><a name="wQo9N"></a></p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>您可以通过 state.savepoints.dir 配置默认的保存点目标目录。触发保存点时，此目录将用于存储保存点。你可以通过使用触发命令指定自定义目标目录来覆盖默认值。<strong>如果您既未配置默认目录也未指定自定义目标目录，则触发保存点将失败。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Default savepoint target directory</span><br><span class="line">state.savepoints.dir: hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;savepoints</span><br></pre></td></tr></table></figure>
+
+<p>对于 Savepoint 的相关会在后面的文章详细描述。</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/" data-id="ckbhdlpq1000ac4udhm1r0vu1" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2020/05/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%85%AD%EF%BC%89%E4%B9%8BWindow/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Flink实战系列（六）之Window
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Flink实战系列（四）之Time与WaterMarker</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

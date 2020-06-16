@@ -66,7 +66,7 @@
       <h1 class="page-type-title"></h1>
       
         
-          <article id="post-Linux基础知识系列之四" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-生产HDFS的Block损坏恢复最佳实践" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -74,7 +74,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/">Linux基础知识系列之四</a>
+      <a class="article-title" href="/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/">生产HDFS上Block损坏恢复最佳实践</a>
     </h2>
   
   
@@ -87,8 +87,214 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/" class="article-date">
-  <time datetime="2019-06-23T02:38:04.000Z" itemprop="datePublished">2019-06-23</time>
+                        <a href="/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" class="article-date">
+  <time datetime="2019-07-07T13:53:33.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>生产上本人一般倾向于使用文中提到的手动修复方式，但是前提要手动删除损坏的block块。<br>切记，是删除损坏block文件和meta文件，而不是删除hdfs文件。 </p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/07/%E7%94%9F%E4%BA%A7HDFS%E7%9A%84Block%E6%8D%9F%E5%9D%8F%E6%81%A2%E5%A4%8D%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" data-id="ckbhdlprh004vc4udek1ybwod" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-详解SecondaryNameNode" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/">详解SecondaryNameNode</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/" class="article-date">
+  <time datetime="2019-07-07T13:49:10.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p>定期合并NN节点的fsimage(快照)+editlog(操作日志)为新的fsimage,推送给NN。而触发这个操作的称为检查点checkpoint。影响checkpoint主要是两个参数：</p>
+<ol>
+<li>checkpoint之间的时间间隔<br>dfs.namenode.checkpoint.period=3600秒=1小时</li>
+<li>操作事务数<br>dfs.namenode.checkpoint.txns=1000000</li>
+</ol>
+<p>以上两个参数满足其一就触发SNN的合并操作。</p>
+<h3 id="合并流程"><a href="#合并流程" class="headerlink" title="合并流程"></a>合并流程</h3><p><img src="/images/SNN%E6%B5%81%E7%A8%8B.png" alt="SNN流程"></p>
+<ul>
+<li>NN创建一个新的操作日志</li>
+<li>SNN通过网络拉取NN上的最新的fsimage和edits</li>
+<li>SNN合并最新的fsimage和edits</li>
+<li>SNN推送合并完的fsimage</li>
+</ul>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/07/%E8%AF%A6%E8%A7%A3SecondaryNameNode/" data-id="ckbhdlprj0056c4uda7i1ga2p" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-HDFS架构及其副本放置策略" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/">HDFS架构及其副本放置策略</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" class="article-date">
+  <time datetime="2019-07-07T13:36:24.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>HDFS中副本是个很重要的容错机制，防止硬件故障带来的文件损失。副本直接复制文件的各个block，HDFS中<em>dfs.replication</em>默认规定副本数为3。这里举个例子，如果你要存储一个260M的文件，在不修改上述的参数情况下，<strong>HDFS实际上有它的3乘3=9个block，实际存储3乘260=780M。</strong></p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/07/HDFS%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/" data-id="ckbhdlpqc0010c4udb64x58ye" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-hadoop无法正常停止" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/">hadoop无法正常停止</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" class="article-date">
+  <time datetime="2019-07-06T13:32:35.000Z" itemprop="datePublished">2019-07-06</time>
 </a>
                             
   <div class="article-category">
@@ -107,16 +313,82 @@
                                             
 
                                                 
-                                                    <p>本文是Linux基础知识系列的第四篇，主要讲述如何使用vi编辑文本以及快捷键、软链接使用场景、权限的修改、压缩与解压、定时任务和后台执行等。</p>
+                                                    <p>在某次启动hdfs之后，在一个月之后，需要将其重启，但却发现无法停止，无奈只有kill掉进程，再次启动。我并不打算将其问题放弃，想看看到底是什么原因导致这个情况。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/">
+                                                            <a class="article-more-link" href="/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/23/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B/" data-id="ckbai4hxi00137oud3ynbdkfe" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/06/hadoop%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%81%9C%E6%AD%A2/" data-id="ckbhdlprc004ac4ud7anc22ut" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-以hostname启动hadoop各个组件" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/">以hostname启动hadoop各个组件</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/" class="article-date">
+  <time datetime="2019-07-04T15:22:39.000Z" itemprop="datePublished">2019-07-04</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>本文详细介绍如何以hostname启动hadoop各个组件，以及其中的坑</p>
+                                                        
+                                                            <a class="article-more-link" href="/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2019/07/04/%E4%BB%A5hostname%E5%90%AF%E5%8A%A8hadoop%E5%90%84%E4%B8%AA%E7%BB%84%E4%BB%B6/" data-id="ckbhdlprd004fc4udfi3mflag" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -132,7 +404,7 @@
 
 </article>
         
-          <article id="post-Linux基础知识系列之四种常见错误以及校验" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-jps详解" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -140,7 +412,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/">Linux基础知识系列之四种常见错误以及校验</a>
+      <a class="article-title" href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/">jps详解</a>
     </h2>
   
   
@@ -153,8 +425,8 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/" class="article-date">
-  <time datetime="2019-06-20T16:00:00.000Z" itemprop="datePublished">2019-06-21</time>
+                        <a href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/" class="article-date">
+  <time datetime="2019-07-03T16:15:08.000Z" itemprop="datePublished">2019-07-04</time>
 </a>
                             
   <div class="article-category">
@@ -173,16 +445,16 @@
                                             
 
                                                 
-                                                    <p>本文是Linux基础知识系列的常见错误集合，主要是四类错误：权限不足、不认识service、时间超时、连接被拒接。</p>
+                                                    <p>jps(Java Virtual Machine Process Status Tool)是JDK提供的一个显示当前所有java进程pid的命令，简单实用，非常适合在linux/unix平台上简单察看当前java进程的一些简单情况。通常在Liunx执行jps，得到就是pid和进程名。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/">
+                                                            <a class="article-more-link" href="/2019/07/04/jps%E8%AF%A6%E8%A7%A3/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E5%9B%9B%E7%A7%8D%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E4%BB%A5%E5%8F%8A%E6%A0%A1%E9%AA%8C/" data-id="ckbai4hxj00167ouddxxw70wn" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/04/jps%E8%AF%A6%E8%A7%A3/" data-id="ckbhdlpre004ic4udbjjyg0x5" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -198,7 +470,7 @@
 
 </article>
         
-          <article id="post-Linux基础知识系列之进程和端口" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-配置多台机器SSH相互通信信任" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -206,7 +478,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/">Linux基础知识系列之进程和端口</a>
+      <a class="article-title" href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/">配置多台机器SSH相互通信信任</a>
     </h2>
   
   
@@ -219,8 +491,8 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/" class="article-date">
-  <time datetime="2019-06-20T16:00:00.000Z" itemprop="datePublished">2019-06-21</time>
+                        <a href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" class="article-date">
+  <time datetime="2019-07-03T02:08:34.000Z" itemprop="datePublished">2019-07-03</time>
 </a>
                             
   <div class="article-category">
@@ -239,16 +511,16 @@
                                             
 
                                                 
-                                                    <p>本文是Linux基础知识系列的进程与端口篇，主要讲述如何查看Linux进程和端口，同时介绍如何杀死进程和查看服务的端口是否对外可访问。</p>
+                                                    <p>本文详细介绍如何配置多台机器SSH互通，以及可能遇到的坑。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/">
+                                                            <a class="article-more-link" href="/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/21/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%AB%AF%E5%8F%A3/" data-id="ckbai4hxl001b7oudh8lycb95" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/03/%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/" data-id="ckbhdlprk005ac4ud4g5uhnzk" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -264,7 +536,7 @@
 
 </article>
         
-          <article id="post-Linux基础知识系列之三" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-记录一次帮网友调试ssh信任关系的过程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -272,7 +544,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/">Linux基础知识系列之三</a>
+      <a class="article-title" href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/">记录一次帮网友调试ssh信任关系的过程</a>
     </h2>
   
   
@@ -285,8 +557,8 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/" class="article-date">
-  <time datetime="2019-06-19T16:00:00.000Z" itemprop="datePublished">2019-06-20</time>
+                        <a href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" class="article-date">
+  <time datetime="2019-07-03T01:41:32.000Z" itemprop="datePublished">2019-07-03</time>
 </a>
                             
   <div class="article-category">
@@ -305,16 +577,16 @@
                                             
 
                                                 
-                                                    <p>本文是Linux基础知识系列的第三篇，主要讲述如何设置sudo权限、rpm安装、搜索文件、上传与下载文件。</p>
+                                                    <p>本文记录了一次帮网友调试ssh信任关系的思考和动手的全过程，分享给大家。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/">
+                                                            <a class="article-more-link" href="/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/20/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/" data-id="ckbai4hxg000w7oud3w6q96lj" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/03/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/" data-id="ckbhdlprj0053c4ud4p728u1t" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -330,7 +602,7 @@
 
 </article>
         
-          <article id="post-Linux基础知识系列之二" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-Hadoop伪分布式部署文档" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -338,7 +610,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/">Linux基础知识系列之二</a>
+      <a class="article-title" href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">Hadoop伪分布式部署文档</a>
     </h2>
   
   
@@ -351,12 +623,12 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/" class="article-date">
-  <time datetime="2019-06-16T16:00:00.000Z" itemprop="datePublished">2019-06-17</time>
+                        <a href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
+  <time datetime="2019-07-01T01:34:02.000Z" itemprop="datePublished">2019-07-01</time>
 </a>
                             
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
   </div>
 
                     </div>
@@ -371,20 +643,20 @@
                                             
 
                                                 
-                                                    <p>本文是Linux基础系列的第二篇，主要讲解Linux中哪几类环境变量以及如何设置、用户以及用户组的意义以及如何设置。</p>
+                                                    <p>本文详细介绍了Hadoop单节点如何安装，验证是否安装成功，以及安装过程中会遇到的坑，此文所使用的Hadoop版本为2.6.0-cdh5.7.0，强烈建议小伙伴们使用cdh版本。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/">
+                                                            <a class="article-more-link" href="/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/17/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BA%8C/" data-id="ckbai4hxh000y7oud2ip78k9f" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/07/01/Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" data-id="ckbhdlpqe0016c4ud9tz562me" class="article-share-link">
                                             分享
                                         </a>
                                         
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
 
                                     </footer>
 
@@ -396,7 +668,7 @@
 
 </article>
         
-          <article id="post-Linux基础知识系列一" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-MySQL基础知识之二" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -404,7 +676,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/">Linux基础知识系列一</a>
+      <a class="article-title" href="/2019/06/30/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%BA%8C/">MySQL基础知识之二</a>
     </h2>
   
   
@@ -417,12 +689,12 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/" class="article-date">
-  <time datetime="2019-06-12T16:00:00.000Z" itemprop="datePublished">2019-06-13</time>
+                        <a href="/2019/06/30/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%BA%8C/" class="article-date">
+  <time datetime="2019-06-30T03:17:36.000Z" itemprop="datePublished">2019-06-30</time>
 </a>
                             
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
   </div>
 
                     </div>
@@ -437,20 +709,20 @@
                                             
 
                                                 
-                                                    <p>介绍Linux基础知识的系列第一篇文章，简单描述了Linux基础概率以及一些常用命令，如：ls、cd、mkdir、vi、cat、cp等。</p>
+                                                    <p>本文是MySQL基础知识系列的第二篇，主要讲述order by、limit、group by、join等使用方法以及注意事项。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/">
+                                                            <a class="article-more-link" href="/2019/06/30/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%BA%8C/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/" data-id="ckbai4hxd000p7oud479d3oxx" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/06/30/MySQL%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B9%8B%E4%BA%8C/" data-id="ckbhdlpqy002yc4udcmtxhqqz" class="article-share-link">
                                             分享
                                         </a>
                                         
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
 
                                     </footer>
 
@@ -467,7 +739,7 @@
   
     
       <nav class="page-nav">
-        <a class="extend prev" rel="prev" href="/page/3/">上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+        <a class="extend prev" rel="prev" href="/page/3/">上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/5/">下一页</a>
       </nav>
     
   </section>

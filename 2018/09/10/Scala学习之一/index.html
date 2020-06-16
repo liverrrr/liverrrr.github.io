@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Scala学习之一 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Scala学习之一" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Scala学习之一
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/" class="article-date">
+  <time datetime="2018-09-10T03:23:00.000Z" itemprop="datePublished">2018-09-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Scala/">Scala</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h2 id="Scala概述"><a href="#Scala概述" class="headerlink" title="Scala概述"></a>Scala概述</h2><p>scala是一门多范式编程语言，集成了面向对象编程和函数式编程等多种特性。<br><br>scala运行在虚拟机上，并兼容现有的Java程序。<br><br>Scala源代码被编译成java字节码，所以运行在JVM上，并可以调用现有的Java类库。<br></p>
+<h2 id="值与变量"><a href="#值与变量" class="headerlink" title="值与变量"></a>值与变量</h2><p>在Scala中使用val/var来定义，val声明之后不可改变，类似于Java的final，而var反之。<br><br>val/var定义格式如下：<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#值：val</span><br><span class="line">val 名称:数据类型 &#x3D; 值</span><br><span class="line">#变量：var</span><br><span class="line">var 名称:数据类型 &#x3D; 值</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><p>Scala跟Java的数据类型差不多，下表就是常用的数据类型以及相关描述：</p>
+<table>
+<thead>
+<tr>
+<th align="center">数据类型</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Int</td>
+<td align="center">32位有符号补码整数。数值区间为 -2147483648 到 2147483647</td>
+</tr>
+<tr>
+<td align="center">Long</td>
+<td align="center">64位有符号补码整数。数值区间为 -9223372036854775808 到 9223372036854775807</td>
+</tr>
+<tr>
+<td align="center">Float</td>
+<td align="center">32位IEEE754单精度浮点数</td>
+</tr>
+<tr>
+<td align="center">Double</td>
+<td align="center">64位IEEE754单精度浮点数</td>
+</tr>
+<tr>
+<td align="center">Boolean</td>
+<td align="center">true或false</td>
+</tr>
+<tr>
+<td align="center">Unit</td>
+<td align="center">表示无值，和其他语言中void等同。用作不返回任何结果的方法的结果类型。</td>
+</tr>
+<tr>
+<td align="center">Null</td>
+<td align="center">null 或空引用</td>
+</tr>
+<tr>
+<td align="center">Nothing</td>
+<td align="center">Nothing类型在Scala的类层级的最低端；它是任何其他类型的子类型。</td>
+</tr>
+<tr>
+<td align="center">Any</td>
+<td align="center">Any是所有其他类的超类，相当于Java中Object</td>
+</tr>
+<tr>
+<td align="center">AnyRef</td>
+<td align="center">AnyRef类是Scala里所有引用类(reference class)的基类</td>
+</tr>
+<tr>
+<td align="center">AnyVal</td>
+<td align="center">AnyVal类是Scala里所有值类型(包括Unit，Boolean)的基类</td>
+</tr>
+</tbody></table>
+<p><strong>注意：Scala中提供了asInstanceOf[T]和isInstanceOf[T]两个方法，前者是数据类型转换，后者是判断是否是某种数据类型</strong></p>
+<h2 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h2><h3 id="while"><a href="#while" class="headerlink" title="while"></a>while</h3><p>与Java使用一样</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while (j &lt;&#x3D; Math.sqrt(i).asInstanceOf[Int] &amp;&amp; flag) &#123;</span><br><span class="line">      if (i % j &#x3D;&#x3D; 0) &#123;</span><br><span class="line">        flag &#x3D; false</span><br><span class="line">      &#125;</span><br><span class="line">      j &#x3D; j + 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="for"><a href="#for" class="headerlink" title="for"></a>for</h3><p>Scala使用for较多，方式也比较多<br><br>标准使用方式为<em>for (i &lt;- 表达式/数组/集合)</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">val array &#x3D; Array(1,2,3,4,5)</span><br><span class="line">for(ele &lt;- array) &#123;</span><br><span class="line">   println(ele)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>顺便介绍两种快速构造不可变的集合方法</p>
+<ul>
+<li>to 代表前闭后闭<br><br>1 to 10 =&gt; Range(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)</li>
+</ul>
+<ul>
+<li>until 代表前闭后开<br><br>1 until 10 =&gt; Range(1, 2, 3, 4, 5, 6, 7, 8, 9)</li>
+</ul>
+<h2 id="方法和函数"><a href="#方法和函数" class="headerlink" title="方法和函数"></a>方法和函数</h2><h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>定义方法：<strong>def 方法名(参数名:参数类型):返回类型={方法体}</strong>，如果你不想返回，返回类型就可以是Unit。scala默认最后一行当做返回值，不需要写return，scala也可以不写返回类型，会自动根据返回值类型推导。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def standard(x: Int, y: Int) &#x3D; &#123;</span><br><span class="line">  x + y</span><br><span class="line">&#125;</span><br><span class="line"># 方法体只有一行可以简化</span><br><span class="line">def standard(x: Int, y: Int) &#x3D; x + y</span><br></pre></td></tr></table></figure>
+<p>在大部分场景返回值可以Scala自身推导出来，但是对于递归调用的，一定要显式指明返回值类型，否则会报错。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def recursion(num: Int): Int &#x3D; &#123;</span><br><span class="line">  if (num &lt;&#x3D; 1) &#123;</span><br><span class="line">    1</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    num + recursion(num - 1)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="默认参数"><a href="#默认参数" class="headerlink" title="默认参数"></a>默认参数</h4><p>当你调用function不传参数时，方法体中使用的是默认值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def defaultParameters(param: String &#x3D; &quot;default&quot;) &#x3D; &#123;</span><br><span class="line">  println(param)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="可变参数"><a href="#可变参数" class="headerlink" title="可变参数"></a>可变参数</h4><p>只需要在参数后面加上*<br><br>如果你要把集合传入，请在其后加上:_*<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">  def variableParameters(nums: Int*) &#x3D; &#123;</span><br><span class="line">    var result &#x3D; 0</span><br><span class="line">    for (ele &lt;- nums) &#123;</span><br><span class="line">      result +&#x3D; ele</span><br><span class="line">    &#125;</span><br><span class="line">    result</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line"># 调用</span><br><span class="line">variableParameters(List(1,2,3,4,5):_*)</span><br><span class="line">variableParameters(1 to 10:_*)</span><br></pre></td></tr></table></figure>
+
+<h4 id="柯里化"><a href="#柯里化" class="headerlink" title="柯里化"></a>柯里化</h4><p>顺便介绍一下函数柯里化，在Scala源码和Spark源码到处都是，但是了解即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 函数柯里化定义</span><br><span class="line">def haskellCurry(x: Int)(y: Int) &#x3D; x + y</span><br></pre></td></tr></table></figure>
+<h3 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h3><p><strong>函数第一种定义：val/var 函数名称 = （参数列表） =&gt; {函数体}</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">val f1 &#x3D; (a: Int, b: Int) &#x3D;&gt; &#123;</span><br><span class="line">    a + b</span><br><span class="line">&#125;</span><br><span class="line"># 也可以简化成</span><br><span class="line">val f1 &#x3D; (a: Int, b: Int) &#x3D;&gt; a + b</span><br></pre></td></tr></table></figure>
+<p>函数第二种定义：val/var 函数名称：（输入参数类型） =&gt; 返回值类型  = （输入参数的引用） =&gt; {函数体}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val f2: (Int, Int) &#x3D;&gt; Int &#x3D; (a: Int, b: Int) &#x3D;&gt; a + b</span><br></pre></td></tr></table></figure>
+<p>明显第二种麻烦，只需要记住使用第一种就好。</p>
+<h3 id="方法和函数区别"><a href="#方法和函数区别" class="headerlink" title="方法和函数区别"></a>方法和函数区别</h3><p>方法的本质上就是一种特殊的函数<br><br><strong>方法用def定义，函数的标识=&gt;</strong><br></p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%80/" data-id="ckbhdlpr00036c4udgziv0uhb" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%BA%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Scala学习之二
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/07/19/Hive%E5%A4%8D%E6%9D%82%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%88%86%E5%8C%BA%E8%A1%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Hive复杂数据类型和分区表</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

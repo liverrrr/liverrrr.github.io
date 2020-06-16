@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Flink实战系列（二）之基础API使用 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Flink实战系列（二）之基础API使用" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Flink实战系列（二）之基础API使用
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2020-02-05T02:17:35.000Z" itemprop="datePublished">2020-02-05</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <p>摘要：Flink中定义两个特殊类来代表数据：DataSet、DataStream，<strong>两者与Java中的集合不同，它们是不可变的，也就是一旦被创建其中的数据不能被增添或者删除，同时它们允许数据可重复。</strong>如果你使用如map、filter等算子，那么新的DataSet/DataStream就在每使用transformations算子之后就会被创建。</p>
+<a id="more"></a>
+<h1 id="DataSet-DataStream"><a href="#DataSet-DataStream" class="headerlink" title="DataSet/DataStream"></a>DataSet/DataStream</h1><h1 id="程序流程"><a href="#程序流程" class="headerlink" title="程序流程"></a>程序流程</h1><p>Flink的程序编写极为规律，每个程序都包含以下部分，这里以WordCount举例，示例数据内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hadoop,hadoop,hadoop</span><br><span class="line">flink,flink</span><br><span class="line">spark</span><br></pre></td></tr></table></figure>
+
+<p><a name="AHFjM"></a></p>
+<h2 id="获取Execution-Environment"><a href="#获取Execution-Environment" class="headerlink" title="获取Execution Environment"></a>获取Execution Environment</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//流处理</span></span><br><span class="line"><span class="keyword">val</span> env = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</span><br><span class="line"></span><br><span class="line"><span class="comment">//批处理</span></span><br><span class="line"><span class="keyword">val</span> env = <span class="type">ExecutionEnvironment</span>.getExecutionEnvironment</span><br></pre></td></tr></table></figure>
+<p>虽然官方提供以下三类获取Environment，但是通常只需要使用getExecutionEnvironment()，它会根据环境来正确地的创建Environment，如果程序执行在IDE编辑器或者作为常规的Java程序执行，它就会在你机器上创建一个本地的Environment；如果使用命令行方式调用Jar包，Flink cluster manager就会执行对应的main方法同时getExecutionEnvironment()就会返回用于集群环境的Environment。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">getExecutionEnvironment()</span><br><span class="line"></span><br><span class="line">createLocalEnvironment()</span><br><span class="line"></span><br><span class="line">createRemoteEnvironment(host: String, port: Int, jarFiles: String*)</span><br></pre></td></tr></table></figure>
+
+<p><a name="16L44"></a></p>
+<h2 id="加载-创建数据-Source"><a href="#加载-创建数据-Source" class="headerlink" title="加载/创建数据(Source)"></a>加载/创建数据(Source)</h2><p>如果你想读取文件数据可以用以下方法：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> ds = env.readTextFile(<span class="string">"input/wc.txt"</span>)</span><br></pre></td></tr></table></figure>
+
+<p><a name="mJfxi"></a></p>
+<h2 id="指定Transformations算子"><a href="#指定Transformations算子" class="headerlink" title="指定Transformations算子"></a>指定Transformations算子</h2><p>每个transformation算子都会产生新的DataSet/DataStream，以下就是WordCount统计所用到算子：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//wordcount统计</span></span><br><span class="line"><span class="keyword">val</span> result = ds.flatMap(_.split(<span class="string">","</span>))</span><br><span class="line">      .map((_, <span class="number">1</span>))</span><br><span class="line">      .keyBy(<span class="number">0</span>)</span><br><span class="line">      .sum(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p><a name="opHtQ"></a></p>
+<h2 id="指定计算之后结果输出到哪里-Sink"><a href="#指定计算之后结果输出到哪里-Sink" class="headerlink" title="指定计算之后结果输出到哪里(Sink)"></a>指定计算之后结果输出到哪里(Sink)</h2><p>print()方法是让结果打印在控制台以便观察，你也可以使用writeAsText(path: String)来写入文件中。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">result.print()</span><br></pre></td></tr></table></figure>
+
+<p><a name="RQUGH"></a></p>
+<h2 id="触发"><a href="#触发" class="headerlink" title="触发"></a>触发</h2><p>这里需要提醒的是，只有流处理需要显式触发，而批处理只需要指定输出即可。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">env.execute(<span class="keyword">this</span>.getClass.getSimpleName)</span><br></pre></td></tr></table></figure>
+
+<p><strong>⚠️注意：以上操作不会像Java程序一样在main方法被启动之后立刻执行相关操作，而是将每个操作添加在Flink维护的有向无环图(简称DAG)中，只有当被触发之后整个DAG才开始执行，这也就是Lazy Evaluation(懒加载)。</strong><br />**<br><a name="MLyGe"></a></p>
+<h1 id="并行度Parallel"><a href="#并行度Parallel" class="headerlink" title="并行度Parallel"></a>并行度Parallel</h1><p><a name="VZQQa"></a></p>
+<h2 id="提出问题"><a href="#提出问题" class="headerlink" title="提出问题"></a>提出问题</h2><p>如果你按照上述WordCount例子运行的话，你应该能看到以下输出内容。很明显与Spark的不太一样，为什么会出现(flink,1)、(hadoop,1)等输出内容呢？原因是Flink对比Spark来说，数据不会以批次处理，而是真正的实时处理，当第一个hadoop被加载立即输出(hadoop,1)，等到第二个hadoop到达时就变成(hadoop,2)，以此类推。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">11&gt; (hadoop,1)</span><br><span class="line">11&gt; (hadoop,2)</span><br><span class="line">11&gt; (hadoop,3)</span><br><span class="line">1&gt; (spark,1)</span><br><span class="line">10&gt; (flink,1)</span><br><span class="line">10&gt; (flink,2)</span><br></pre></td></tr></table></figure>
+
+<p>不知道你是否注意到结果之前的数字，比如11、1、10，这些代表什么？为什么hadoop前面会是11，spark前面是1，flink前面是10？要搞清楚这些问题就必须先了解Flink中的并行度。</p>
+<p><a name="Hik24"></a></p>
+<h2 id="什么是并行度"><a href="#什么是并行度" class="headerlink" title="什么是并行度"></a>什么是并行度</h2><p>前一篇介绍了Flink是分布式且任务并行执行的计算引擎，在执行过程中，数据流会有一个或者多个分区，每个操作Task也会有一个或者多个子操作Task，<strong>这里的并行度也就是指定的操作有多少个子操作Task，同一个代码中每个操作的并行度都不一定相同。</strong><br /><img src="/images/parallel_dataflow.svg" alt="parallel_dataflow.svg"><br />Flink中有两类操作：one-to-one和redistributing都与并行度有关：</p>
+<ul>
+<li>One-to-one</li>
+</ul>
+<p>例如Source与map()之间，保留数据的顺序和分区，类似与Spark的窄依赖。</p>
+<ul>
+<li>Redistributing</li>
+</ul>
+<p>例如map()和keyBy/window、keyBy/window和Sink之间数据重新分配到不同子Task上。不同算子会有不同分配方式：keyBy() 通过Key值来Hash进行重新分配、broadcast()和rebalance()则是随机分配。</p>
+<p><a name="nQJwe"></a></p>
+<h2 id="回答问题"><a href="#回答问题" class="headerlink" title="回答问题"></a>回答问题</h2><p>回到之前的问题，输出结果之前的数字其实就是线程号，经过keyBy()重新分配之后同一key都在一个线程中处理。如果不想看到这些线程号，只需要在print()后面加上setParallelism(1)就行。其实有很多中设置并行度方法，之后系列文章会详细写一部分。</p>
+<p><a name="n2onG"></a></p>
+<h1 id="多种指定Key的方式"><a href="#多种指定Key的方式" class="headerlink" title="多种指定Key的方式"></a>多种指定Key的方式</h1><p>一些transformations算子，例如：join, coGroup, keyBy, groupBy需要使用者指定Key，以便之后的Reduce, GroupReduce, Aggregate, Windows等算子计算。<br><a name="1zv32"></a></p>
+<h2 id="Tuples指定Key"><a href="#Tuples指定Key" class="headerlink" title="Tuples指定Key"></a>Tuples指定Key</h2><p>上方WC例子就是在Tuple中通过index来指定Key的，代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> result = ds.flatMap(_.split(<span class="string">","</span>))</span><br><span class="line">      .map((_, <span class="number">1</span>))</span><br><span class="line">      .keyBy(<span class="number">0</span>)</span><br><span class="line">      .sum(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>⚠️需要注意的是，如果你有个如下所示的DataStream，key(0)则是指的其中的Tuple2&lt;Integer,Float&gt;，如果你想指定Tuple2中的Integer，可以使用类似于<em>.</em>1._1。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DataStream</span>&lt;<span class="type">Tuple3</span>&lt;<span class="type">Tuple2</span>&lt;<span class="type">Integer</span>, <span class="type">Float</span>&gt;,<span class="type">String</span>,<span class="type">Long</span>&gt;&gt; ds;</span><br></pre></td></tr></table></figure>
+
+<p><a name="7CsiD"></a></p>
+<h2 id="字段指定Key"><a href="#字段指定Key" class="headerlink" title="字段指定Key"></a>字段指定Key</h2><p>这个是基于字段名来指定Key，特别适合嵌套类型，例如Tuple和POJO。首先得定义一个WC POJO来接受数据，建议使用case class，代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">WC</span>(<span class="params">word:<span class="type">String</span>,count:<span class="type">Int</span></span>)</span></span><br><span class="line"><span class="class"><span class="title">input</span>.<span class="title">flatMap</span>(<span class="params">_.split(","</span>))</span></span><br><span class="line"><span class="class">      .<span class="title">map</span>(<span class="params">ele =&gt; &#123;</span></span></span><br><span class="line"><span class="class"><span class="params">        <span class="type">WC</span>(ele, 1</span>)</span></span><br><span class="line"><span class="class">      &#125;)</span></span><br><span class="line"><span class="class">      .<span class="title">keyBy</span>(<span class="params">"word"</span>)</span></span><br><span class="line"><span class="class">      .<span class="title">sum</span>(<span class="params">"count"</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p><a name="lLVu7"></a></p>
+<h2 id="Key-Selector方法指定Key"><a href="#Key-Selector方法指定Key" class="headerlink" title="Key Selector方法指定Key"></a>Key Selector方法指定Key</h2><p>Key Selector方法通过使用者将数据作为输入，并返回所想要的Key，代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">input.flatMap(_.split(<span class="string">","</span>))</span><br><span class="line">      .map(x =&gt; &#123;</span><br><span class="line">        <span class="type">WC</span>(x, <span class="number">1</span>)</span><br><span class="line">      &#125;)</span><br><span class="line">      .keyBy(_.word)</span><br><span class="line">      .sum(<span class="string">"count"</span>)</span><br></pre></td></tr></table></figure>
+<p><a name="C7iTK"></a></p>
+<h2 id="Flink支持的数据类型"><a href="#Flink支持的数据类型" class="headerlink" title="Flink支持的数据类型"></a>Flink支持的数据类型</h2><ul>
+<li>Java Tuples and Scala Case Classes</li>
+<li>Java POJOs</li>
+</ul>
+<p>_    1. 类必须为public_<br />_    2. 必须含有无参构造函数_<br />_    3. 有所有属性的get/set方法_<br />_    4. 支持序列化_</p>
+<ul>
+<li>Primitive Types：Flink支持所有Java和Scala原生类型，例如：Integer，String和Double</li>
+<li>Regular Classes：支持大部分Java和Scala的API和类，除开无法序列化的，例如IO流、文件指针等</li>
+<li>Values：手动序列化和反序列化，通过实现org.apache.flinktypes.Value接口中的read和write方法</li>
+<li>Hadoop Writables：实现org.apache.hadoop.Writable接口的类型</li>
+<li>Special Types：Scala的Either，Option和Try</li>
+</ul>
+<p><a name="YFIGd"></a></p>
+<h1 id="多种实现Transformation方法"><a href="#多种实现Transformation方法" class="headerlink" title="多种实现Transformation方法"></a>多种实现Transformation方法</h1><p><a name="bkzBS"></a></p>
+<h2 id="Lambda-Functions"><a href="#Lambda-Functions" class="headerlink" title="Lambda Functions"></a>Lambda Functions</h2><p>就像前面的例子一样，使用Lambda表达式来实现自己的Transformation方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">env.readTextFile(<span class="string">"input/access.log"</span>)</span><br><span class="line">        .map(x =&gt; &#123;</span><br><span class="line">          <span class="keyword">val</span> splits = x.split(<span class="string">","</span>)</span><br><span class="line">          (splits(<span class="number">0</span>).toLong,splits(<span class="number">1</span>),splits(<span class="number">2</span>).toInt)</span><br><span class="line">        &#125;)</span><br><span class="line">        .filter(_._3 &gt; <span class="number">5000</span>)</span><br><span class="line">        .print()</span><br></pre></td></tr></table></figure>
+
+<p><a name="m5wiI"></a></p>
+<h2 id="Rich-Functions"><a href="#Rich-Functions" class="headerlink" title="Rich Functions"></a>Rich Functions</h2><p>所有的Transformation方法都有对应的Rich方法，例如map就对应RichMapFunction。Rich Function不仅让使用者自己实现相关方法(例如map、filter等)，还提供生命周期方法(例如open、close)以及RunTimeContext用来传递参数、广播变量等。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//两种方式：匿名内部类以及创建继承相关Rich的新类</span></span><br><span class="line"><span class="comment">//注意map和filter</span></span><br><span class="line">env.readTextFile(<span class="string">"input/access.log"</span>)</span><br><span class="line">        .map(<span class="keyword">new</span> <span class="type">RichMapFunction</span>[<span class="type">String</span>,<span class="type">Access</span>] &#123;</span><br><span class="line">          <span class="comment">//setup methods</span></span><br><span class="line">          <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">open</span></span>(parameters: <span class="type">Configuration</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">            println(<span class="string">"~~~~~~~~~open~~~~~~~~~~~~"</span>)</span><br><span class="line">            <span class="keyword">super</span>.open(parameters)</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">map</span></span>(input: <span class="type">String</span>): <span class="type">Access</span> = &#123;</span><br><span class="line">            <span class="keyword">val</span> splits = input.split(<span class="string">","</span>)</span><br><span class="line">            <span class="type">Access</span>(splits(<span class="number">0</span>),splits(<span class="number">1</span>),splits(<span class="number">2</span>).toInt)</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="comment">//teardown methods</span></span><br><span class="line">          <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">close</span></span>(): <span class="type">Unit</span> = <span class="keyword">super</span>.close()</span><br><span class="line">        &#125;)</span><br><span class="line">      .filter(<span class="keyword">new</span> <span class="type">MyFilterFun</span>)</span><br><span class="line">      .print().setParallelism(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyFilterFun</span> <span class="keyword">extends</span> <span class="title">RichFilterFunction</span>[<span class="type">Access</span>]</span>&#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">filter</span></span>(input: <span class="type">Access</span>): <span class="type">Boolean</span> = &#123;</span><br><span class="line">      input.flow &gt; <span class="number">5000</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p><a name="LQWJK"></a></p>
+<h1 id="累加器"><a href="#累加器" class="headerlink" title="累加器"></a>累加器</h1><p>Flink内置两类累加器，这些都是实现Accumulator接口：</p>
+<ul>
+<li>IntCounter、LongCounter、DoubleCounter等</li>
+<li>Histogram：离散直方图实现，内部实现为Integer到Integer的映射，用于监控。<br><a name="bnFpR"></a><h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2>第一步，在你自己实现的transformation方法中创建一个累加器对象；<br />第二步，在Rich Function的open方法中注册累加器；<br />第三步，使用累加器；<br />第四步，使用JobExecutionResult对象查看累加器结果，代码如下：</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//利用累加器来统计多少不符合标准的数据</span></span><br><span class="line">env.readTextFile(<span class="string">"input/access.txt"</span>)</span><br><span class="line">      .map(<span class="keyword">new</span> <span class="type">RichMapFunction</span>[<span class="type">String</span>, <span class="type">Access</span>] &#123;</span><br><span class="line">        <span class="comment">//创建累加器</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">val</span> total = <span class="keyword">new</span> <span class="type">IntCounter</span>()</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">val</span> wrong = <span class="keyword">new</span> <span class="type">IntCounter</span>()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">open</span></span>(parameters: <span class="type">Configuration</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">          <span class="comment">//注册累加器</span></span><br><span class="line">          getRuntimeContext.addAccumulator(<span class="string">"num_total"</span>, total)</span><br><span class="line">          getRuntimeContext.addAccumulator(<span class="string">"num_wrong"</span>, wrong)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">close</span></span>(): <span class="type">Unit</span> = <span class="keyword">super</span>.close()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">map</span></span>(input: <span class="type">String</span>): <span class="type">Access</span> = &#123;</span><br><span class="line">          <span class="comment">//使用累加器</span></span><br><span class="line">          total.add(<span class="number">1</span>)</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">val</span> splits = input.split(<span class="string">","</span>)</span><br><span class="line">            <span class="type">Access</span>(splits(<span class="number">0</span>), splits(<span class="number">1</span>), splits(<span class="number">2</span>).toInt)</span><br><span class="line">          &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">            <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt; &#123;</span><br><span class="line">              wrong.add(<span class="number">1</span>)</span><br><span class="line">              <span class="literal">null</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//查看结果</span></span><br><span class="line"><span class="keyword">val</span> myJobExecutionResult = env.execute(<span class="keyword">this</span>.getClass.getSimpleName)</span><br><span class="line"><span class="keyword">val</span> resultTotal = myJobExecutionResult.getAccumulatorResult[<span class="type">Int</span>](<span class="string">"num_total"</span>)</span><br><span class="line"><span class="keyword">val</span> resultWrong = myJobExecutionResult.getAccumulatorResult[<span class="type">Int</span>](<span class="string">"num_wrong"</span>)</span><br><span class="line">println(<span class="string">"total num is "</span> + resultTotal + <span class="string">",wrong num is "</span> + resultWrong)</span><br></pre></td></tr></table></figure>
+
+<p><strong>上文所涉及到的示例代码以及数据皆已上传到Github上，如有需要请直接clone到本地直接运行，🔗链接如下：</strong><br />[<a href="https://github.com/liverrrr/bigdata/tree/master/flink" target="_blank" rel="noopener">https://github.com/liverrrr/bigdata/tree/master/flink</a>)<br />上文如有错误或是纰漏，👏欢迎各位下方评论指出，大家一起交流学习📖</p>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/" data-id="ckbhdlppy0006c4udcu4a6n08" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Flink实战系列（三）之Source和Sink的使用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/01/30/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Flink实战系列（一）之基础概念以及环境准备</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

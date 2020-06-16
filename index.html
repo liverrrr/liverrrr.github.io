@@ -66,6 +66,402 @@
       <h1 class="page-type-title"></h1>
       
         
+          <article id="post-Flink实战系列（六）之Window" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/05/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%85%AD%EF%BC%89%E4%B9%8BWindow/">Flink实战系列（六）之Window</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/05/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%85%AD%EF%BC%89%E4%B9%8BWindow/" class="article-date">
+  <time datetime="2020-05-16T01:51:32.000Z" itemprop="datePublished">2020-05-16</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：Windows 是流处理的核心，Windows 将流分成有限大小的”buckets”，我们可以在其上应用计算。使用 Windows 第一件事就是确定你的数据流是否是使用 <strong>keyBy(…) **方法，</strong>keyBy(…) *<em>将允许你的窗口化计算由多个任务并行执行，因为在逻辑上 keyed stream 都可以独立于其余进行处理，同时引用同一 key 的所有元素将被发送到同一任务中。不使用 *</em>keyBy(…) **则是非 keyed 数据流，你的数据流将不会拆分为多个 keyed 流，并且所有加窗逻辑将由单个任务执行，即并行度为1。<br /></p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/05/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%85%AD%EF%BC%89%E4%B9%8BWindow/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/05/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%85%AD%EF%BC%89%E4%B9%8BWindow/" data-id="ckbhdlpq3000bc4udafufgtrw" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Flink实战系列（五）之State&amp;Checkpoint" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/">Flink实战系列（五）之State</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/" class="article-date">
+  <time datetime="2020-04-16T02:47:02.000Z" itemprop="datePublished">2020-04-16</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：在Flink中有两种分类：Keyed State 和 Operator State，Keyed State 一般与 Keys 联合使用，不是 Keyed State 都叫做 Operator State。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/04/16/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%94%EF%BC%89%E4%B9%8BState&Checkpoint/" data-id="ckbhdlpq1000ac4udhm1r0vu1" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Flink实战系列（四）之Time与WaterMarker" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/">Flink实战系列（四）之Time与WaterMarker</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/" class="article-date">
+  <time datetime="2020-03-01T02:31:30.000Z" itemprop="datePublished">2020-03-01</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：本文主要介绍Time与WaterMarker相关概念以及使用方法</p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/03/01/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%E4%B9%8BTime%E4%B8%8EWaterMarker/" data-id="ckbhdlpq5000fc4ud6ia31wuv" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Flink实战系列（三）之Source和Sink的使用" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/">Flink实战系列（三）之Source和Sink的使用</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2020-02-21T02:28:29.000Z" itemprop="datePublished">2020-02-21</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：上篇文章中介绍Flink编程模型，这次我们们来看看Flink的Source和Sink，Flink支持向文件、socket、集合等中读写数据，同时Flink也内置许多<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/" target="_blank" rel="noopener">connectors</a>，例如Kafka、Hadoop、Redis等。这些内置的connectors都是维护精确一次语义，而SparkStreaming对接Kafka、Redis等需要使用者自己维护精确一次语义。接下来，我们来看看Flink如何自定义Source，本文不涉及到checkpoint等实现。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/02/21/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%E4%B9%8BSource%E5%92%8CSink%E7%9A%84%E4%BD%BF%E7%94%A8/" data-id="ckbhdlppy0005c4ud2pke0e24" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Flink实战系列（二）之基础API使用" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/">Flink实战系列（二）之基础API使用</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2020-02-05T02:17:35.000Z" itemprop="datePublished">2020-02-05</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：Flink中定义两个特殊类来代表数据：DataSet、DataStream，<strong>两者与Java中的集合不同，它们是不可变的，也就是一旦被创建其中的数据不能被增添或者删除，同时它们允许数据可重复。</strong>如果你使用如map、filter等算子，那么新的DataSet/DataStream就在每使用transformations算子之后就会被创建。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/02/05/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80API%E4%BD%BF%E7%94%A8/" data-id="ckbhdlppy0006c4udcu4a6n08" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
+          <article id="post-Flink实战系列（一）之基础概念以及环境准备" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h2 itemprop="name">
+      <a class="article-title" href="/2020/01/30/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/">Flink实战系列（一）之基础概念以及环境准备</a>
+    </h2>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2020/01/30/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/" class="article-date">
+  <time datetime="2020-01-30T01:58:46.000Z" itemprop="datePublished">2020-01-30</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                    <p>摘要：Apache Flink 是一个分布式大数据处理引擎，可对有限数据流(<em>bounded</em>)和无限数据流(<em>unbounded</em>)进行有状态或无状态的计算，能够部署在各种集群环境，对各种规模大小的数据进行基于内存快速计算。</p>
+                                                        
+                                                            <a class="article-more-link" href="/2020/01/30/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/">
+                                                                阅读全文...
+                                                            </a>
+                                                            
+                                                                
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2020/01/30/Flink%E5%AE%9E%E6%88%98%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%E4%B9%8B%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/" data-id="ckbhdlppx0004c4udbg4ifoki" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+
+                
+
+</article>
+        
           <article id="post-HBase生产实践之RowKey设计" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
@@ -116,7 +512,7 @@
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8BRowKey%E8%AE%BE%E8%AE%A1/" data-id="ckbai4hx400067oudhr9h76eo" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8BRowKey%E8%AE%BE%E8%AE%A1/" data-id="ckbhdlpq6000gc4udboscfmtt" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -182,7 +578,7 @@
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckbai4hx500087oud3syj8ukp" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/" data-id="ckbhdlpq8000mc4ud0ace798s" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -248,7 +644,7 @@
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E5%88%9D%E6%AD%A5%E4%BB%8B%E7%BB%8D/" data-id="ckbai4hx000027oud6m3ch93o" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/11/13/HBase%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5%E4%B9%8B%E5%88%9D%E6%AD%A5%E4%BB%8B%E7%BB%8D/" data-id="ckbhdlpq7000kc4ud7nqncndc" class="article-share-link">
                                             分享
                                         </a>
                                         
@@ -264,7 +660,7 @@
 
 </article>
         
-          <article id="post-Zookeeper入门" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+          <article id="post-Kafka生产实战" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
 
     <div class="article-inner">
         
@@ -272,7 +668,7 @@
                 
   
     <h2 itemprop="name">
-      <a class="article-title" href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/">Zookeeper入门</a>
+      <a class="article-title" href="/2019/10/28/Kafka%E7%94%9F%E4%BA%A7%E5%AE%9E%E6%88%98/">Kafka生产实战</a>
     </h2>
   
   
@@ -285,12 +681,12 @@
 
                 
                     <div class="article-meta">
-                        <a href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" class="article-date">
-  <time datetime="2019-09-04T07:53:11.000Z" itemprop="datePublished">2019-09-04</time>
+                        <a href="/2019/10/28/Kafka%E7%94%9F%E4%BA%A7%E5%AE%9E%E6%88%98/" class="article-date">
+  <time datetime="2019-10-28T02:53:58.000Z" itemprop="datePublished">2019-10-28</time>
 </a>
                             
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+    <a class="article-category-link" href="/categories/Kafka/">Kafka</a>
   </div>
 
                     </div>
@@ -305,416 +701,20 @@
                                             
 
                                                 
-                                                    <p>摘要：ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件同时也是Apache顶级项目之一。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。</p>
+                                                    <p>摘要：详细介绍Kafka核心概念、偏移量、交付语义等。</p>
                                                         
-                                                            <a class="article-more-link" href="/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/">
+                                                            <a class="article-more-link" href="/2019/10/28/Kafka%E7%94%9F%E4%BA%A7%E5%AE%9E%E6%88%98/">
                                                                 阅读全文...
                                                             </a>
                                                             
                                                                 
                                     </div>
                                     <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/09/04/Zookeeper%E5%85%A5%E9%97%A8/" data-id="ckbai4hy0002i7oudeimi5ft8" class="article-share-link">
+                                        <a data-url="http://yoursite.com/2019/10/28/Kafka%E7%94%9F%E4%BA%A7%E5%AE%9E%E6%88%98/" data-id="ckbhdlpqp0020c4ud780ncd10" class="article-share-link">
                                             分享
                                         </a>
                                         
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-记一次Zookeeper集群无法正常启动分析过程" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/">记一次Zookeeper集群无法正常启动分析过程</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/" class="article-date">
-  <time datetime="2019-08-22T07:59:56.000Z" itemprop="datePublished">2019-08-22</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：记一次Zookeeper集群无法正常启动分析过程</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/08/22/%E8%AE%B0%E4%B8%80%E6%AC%A1Zookeeper%E9%9B%86%E7%BE%A4%E6%97%A0%E6%B3%95%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B/" data-id="ckbai4hy800397oudca5l9tw2" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-MapReduce全局排序以及分区排序" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/">MapReduce全局排序以及分区排序</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/" class="article-date">
-  <time datetime="2019-07-12T03:15:39.000Z" itemprop="datePublished">2019-07-12</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：根据具体需求完成MR的全局排序以及分区排序</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/12/MapReduce%E5%85%A8%E5%B1%80%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E5%88%86%E5%8C%BA%E6%8E%92%E5%BA%8F/" data-id="ckbai4hxm001e7oudc37z83yv" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-源码分析MapReduce如何运作的" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/">源码分析MapReduce如何运作的</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/" class="article-date">
-  <time datetime="2019-07-12T03:05:00.000Z" itemprop="datePublished">2019-07-12</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Source/">Source</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：从MR编程结尾job.waitForCompletion(true)开始分析，探究MR分片机制。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/12/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90MapReduce%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C%E7%9A%84/" data-id="ckbai4hy500317oud11ew8pas" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Source/" rel="tag">Source</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-HDFS和YARN的HA部署文档" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">HDFS和YARN的HA部署文档</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2019-07-11T02:54:12.000Z" itemprop="datePublished">2019-07-11</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：详细介绍如何部署HDFS和YARN的HA部署过程以及其中的坑。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/11/HDFS%E5%92%8CYARN%E7%9A%84HA%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" data-id="ckbai4hx8000e7oud9lmleher" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-YARN的HA架构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/">YARN的HA架构梳理</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
-  <time datetime="2019-07-11T02:09:10.000Z" itemprop="datePublished">2019-07-11</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：YARN的架构跟HDFS一样都是主从架构，一旦RM挂掉，整个YARN调度都不可以用，因此生产上YARN也得做HA。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/11/YARN%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckbai4hxt001z7oud9effc12q" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
-
-                                    </footer>
-
-    </div>
-
-    
-
-                
-
-</article>
-        
-          <article id="post-HDFS的HA架构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
-
-    <div class="article-inner">
-        
-            <header class="article-header">
-                
-  
-    <h2 itemprop="name">
-      <a class="article-title" href="/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/">HDFS的HA架构梳理</a>
-    </h2>
-  
-  
-
-
-
-
-            </header>
-            
-
-                
-                    <div class="article-meta">
-                        <a href="/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
-  <time datetime="2019-07-11T02:01:09.000Z" itemprop="datePublished">2019-07-11</time>
-</a>
-                            
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-                    </div>
-                    
-
-                        
-
-                                    <div class="article-entry" itemprop="articleBody">
-                                        
-
-
-                                            
-
-                                                
-                                                    <p>摘要：HDFS本身架构是有缺陷的，NN节点管理着元数据，一旦NN节点挂掉，整个HDFS服务不可用，更别说Hive，Hbase等建立在HDFS之上的服务。<br>还有SNN默认是每隔1小时做一次NN的备份，如果NN挂点，只能恢复之前1个小时的元数据，这两点对7乘24小时无间断服务目标来说完全无法接受，于是生产上必定使用HA。</p>
-                                                        
-                                                            <a class="article-more-link" href="/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/">
-                                                                阅读全文...
-                                                            </a>
-                                                            
-                                                                
-                                    </div>
-                                    <footer class="article-footer">
-                                        <a data-url="http://yoursite.com/2019/07/11/HDFS%E7%9A%84HA%E6%9E%B6%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckbai4hxe000r7oud57f8e3x0" class="article-share-link">
-                                            分享
-                                        </a>
-                                        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li></ul>
 
                                     </footer>
 
@@ -731,7 +731,7 @@
   
     
       <nav class="page-nav">
-        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
+        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
       </nav>
     
   </section>

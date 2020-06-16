@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Scala学习之三 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Scala学习之三" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Scala学习之三
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%89/" class="article-date">
+  <time datetime="2018-09-10T03:23:03.000Z" itemprop="datePublished">2018-09-10</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Scala/">Scala</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h2 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h2><p>Scala中任意一个集合都有可变(mutable)和不可变(immutable)两种，这两个都存在scala.collection包下。</p>
+<h3 id="Array"><a href="#Array" class="headerlink" title="Array"></a>Array</h3><p>定长数组是Array,变长数组是ArrayBuffer</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">      * 定长数组是Array()</span><br><span class="line">      * 变长数组是ArrayBuffer()</span><br><span class="line">      *&#x2F;</span><br><span class="line">    val array &#x3D; Array(&quot;ruoze&quot;, &quot;jepson&quot;, &quot;xingxing&quot;)</span><br><span class="line">    val buffer &#x3D; ArrayBuffer[Int]()</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;buffer增删操作</span><br><span class="line">    buffer +&#x3D; 1</span><br><span class="line">    buffer.insert(1, 2)</span><br><span class="line">    buffer.size</span><br><span class="line">    buffer.remove(1)</span><br><span class="line">    buffer ++&#x3D; Array(11, 12, 13)</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">      * mkString 以指定的分隔符拼接</span><br><span class="line">      *&#x2F;</span><br><span class="line">    array.mkString(&quot;,&quot;)</span><br><span class="line">    array.mkString</span><br><span class="line">    array.mkString(&quot;[&quot;, &quot;$$$&quot;, &quot;]&quot;)</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">      * 反转数组</span><br><span class="line">      *&#x2F;</span><br><span class="line">    array.reverse</span><br><span class="line">    for (i &lt;- array.length - 1 to 0 by -1) &#123;</span><br><span class="line">      println(array(i))</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>一些常用的集合方法如下，这些方法不仅对Array有效，其他集合类型也能用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">val a &#x3D; Array(1, 2, 3, 4, 5, 6, 7, 8)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * map 一一映射</span><br><span class="line">  *&#x2F;</span><br><span class="line">a.map(x &#x3D;&gt; x * 2)</span><br><span class="line">a.map(_ * 2)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * filter 过滤 true</span><br><span class="line">  *&#x2F;</span><br><span class="line">a.filter(_ &gt; 5)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * reduce 两两相加 默认从左边开始</span><br><span class="line">  * reduceLeft 从左边开始两两相加</span><br><span class="line">  * reduceRight 从右边开始两两相加</span><br><span class="line">  *&#x2F;</span><br><span class="line">a.reduce(_ + _)</span><br><span class="line">a.reduce(_ - _)</span><br><span class="line">a.reduceLeft(_ + _)</span><br><span class="line">a.reduceLeft(_ - _)</span><br><span class="line">a.reduceRight(_ + _)</span><br><span class="line">a.reduceRight(_ - _)</span><br><span class="line"></span><br><span class="line">a.reduceRight((a, b) &#x3D;&gt; &#123;</span><br><span class="line">  println(&quot;a:&quot; + a + &quot; b:&quot; + b + &quot; a+b&#x3D;&quot; + (a - b))</span><br><span class="line">  a - b</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * zip 两个数组依据下标匹配 得到数组长度由两个中最短决定</span><br><span class="line">  *&#x2F;</span><br><span class="line">val numZip &#x3D; Array(1, 2, 3, 4)</span><br><span class="line">val strZip &#x3D; Array(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;)</span><br><span class="line">numZip.zip(strZip)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * flatMap &#x3D; flatten + map</span><br><span class="line">  *&#x2F;</span><br><span class="line">val numArray &#x3D; Array(Array(1, 2), Array(3, 4), Array(5, 6))</span><br><span class="line">numArray.flatMap(_.map(_ * 2))</span><br><span class="line">numArray.flatMap(_.map(_ * 2).filter(_ &gt; 5))</span><br><span class="line">numArray.flatten.map(_ * 2).filter(_ &gt; 5)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * find 找到符合条件的第一个</span><br><span class="line">  *&#x2F;</span><br><span class="line">numZip.find(_ &gt; 3)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * take 从左截取n个</span><br><span class="line">  * takeRight 从右截取n个</span><br><span class="line">  *&#x2F;</span><br><span class="line">numArray.flatten.take(3)</span><br><span class="line">numArray.flatten.takeRight(3)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * group by分组</span><br><span class="line">  *&#x2F;</span><br><span class="line">val numGroup&#x3D;Array((&quot;a&quot;,100),(&quot;b&quot;,10),(&quot;c&quot;,15),(&quot;b&quot;,140))</span><br><span class="line">numGroup.groupBy(_._1)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * sortby 排序</span><br><span class="line">  *&#x2F;</span><br><span class="line">numGroup.sortBy(_._2)</span><br><span class="line">numGroup.sortBy(-_._2) &#x2F;&#x2F;倒序</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * scala 实现wc例子</span><br><span class="line">  *&#x2F;</span><br><span class="line">val wc&#x3D;Array(&quot;hello,hello,world&quot;,&quot;ruoze,ruoze&quot;)</span><br><span class="line">wc.flatMap(_.split(&quot;,&quot;))</span><br><span class="line">  .map((_,1))</span><br><span class="line">  .groupBy(_._1)</span><br><span class="line">  .mapValues(_.map(_._2).sum)</span><br><span class="line">  .toList.sortBy(-_._2)</span><br></pre></td></tr></table></figure>
+<h3 id="List-Set"><a href="#List-Set" class="headerlink" title="List/Set"></a>List/Set</h3><p>List有序，可重复<br><br>Set无序，不可重复。<br><br>由于Set和List操作类似，所以下面例子只呈现List<br></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  * List 有序 可重复   不可变</span><br><span class="line">  * ListBuffer 可变</span><br><span class="line">  * Set  无序 不可重复 不可变</span><br><span class="line">  * SetBuffer  可变</span><br><span class="line">  *&#x2F;</span><br><span class="line">object ListApp &#123;</span><br><span class="line"></span><br><span class="line">  def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    val nums&#x3D;List(1,2,3,4,5)</span><br><span class="line">    println(sum(nums:_*))</span><br><span class="line"></span><br><span class="line">    val a&#x3D;new ListBuffer[Int]()</span><br><span class="line">    a+&#x3D;1</span><br><span class="line">    a+&#x3D;(2,3)</span><br><span class="line">    a++List(4,5)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;**</span><br><span class="line">    * Nil是个不可变的size为0的List</span><br><span class="line">    *</span><br><span class="line">    *&#x2F;</span><br><span class="line">  def NewGetList() &#x3D; &#123;</span><br><span class="line">    val a &#x3D; 1 :: Nil &#x2F;&#x2F;不可变的List(1)</span><br><span class="line">    val b &#x3D; (1, 2, 3) :: Nil &#x2F;&#x2F;不可变的List((1,2,3))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;**</span><br><span class="line">    * 传入数组来做递归求和</span><br><span class="line">    * head取List的第一个数</span><br><span class="line">    * tail取List的除第一个数以外的所有</span><br><span class="line">   *&#x2F;</span><br><span class="line">  def sum(nums: Int*): Int &#x3D; &#123;</span><br><span class="line">    if (nums.isEmpty) &#123;</span><br><span class="line">      0</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">      nums.head + sum(nums.tail: _*)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;**</span><br><span class="line">    * zip 跟数组的zip是一样的</span><br><span class="line">    * zipWithIndex 添加index</span><br><span class="line">    *&#x2F;</span><br><span class="line">  def listZip():Unit&#x3D;&#123;</span><br><span class="line">    val a&#x3D;List(&quot;A&quot;,&quot;B&quot;,&quot;c&quot;)</span><br><span class="line">    val b&#x3D;List(1,2,3,4)</span><br><span class="line">    val zipResult &#x3D; a.zip(b) &#x2F;&#x2F;List((A,1), (B,2), (c,3))</span><br><span class="line">    val withIndex &#x3D; zipResult.zipWithIndex.zipWithIndex &#x2F;&#x2F;List((((A,1),0),0), (((B,2),1),1), (((c,3),2),2))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h3><p>Scala中的Map结构为key-&gt;value，遍历方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">import scala.collection.mutable.Map  --&gt;可变</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * map 可变  不可变</span><br><span class="line">  * key-&gt;value</span><br><span class="line">  *&#x2F;</span><br><span class="line">object MapApp &#123;</span><br><span class="line"></span><br><span class="line">  def main(args: Array[String]): Unit &#x3D; &#123;</span><br><span class="line">    val map &#x3D; Map(&quot;zhangsan&quot; -&gt; 13, &quot;lisi&quot; -&gt; 14, &quot;wangwu&quot; -&gt; 20)</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;map 第一种遍历</span><br><span class="line">    for ((k, v) &lt;- map) &#123;</span><br><span class="line">      println(k + &quot; -&gt; &quot; + v)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;map 第二种遍历</span><br><span class="line">    for (k &lt;- map.keySet) &#123;</span><br><span class="line">      println(k + &quot; -&gt; &quot; + map.getOrElse(k, -99))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;map 第三种遍历</span><br><span class="line">    for (v &lt;- map.values) &#123;</span><br><span class="line">      println(v)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">      * 如果想使用有顺序的Map：</span><br><span class="line">      * scala.collection.immutable.SortedMap</span><br><span class="line">      * scala.collection.mutable.LinkedHashMap</span><br><span class="line">      *&#x2F;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">      * get()返回Option</span><br><span class="line">      * Option有两个子类Some和None</span><br><span class="line">      * Some代表有值</span><br><span class="line">      * None代表没值</span><br><span class="line">      *&#x2F;</span><br><span class="line">    val maybeInt &#x3D; map.get(&quot;dengdi&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="模式匹配"><a href="#模式匹配" class="headerlink" title="模式匹配"></a>模式匹配</h2><p>这个类似于Java中switch，但是它能匹配的东西更多。它的定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">变量  match &#123;</span><br><span class="line">   case x &#x3D;&gt; code</span><br><span class="line">   case y  &#x3D;&gt; code</span><br><span class="line">   case z &#x3D;&gt; code</span><br><span class="line">   case _  &#x3D;&gt; code</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>内容匹配</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def matchContent &#x3D; &#123;</span><br><span class="line">  val contents &#x3D; Array(&quot;Aoi Sola&quot;, &quot;YuiHatano&quot;, &quot;Akiho Yoshizawa&quot;)</span><br><span class="line">  val name &#x3D; contents(Random.nextInt(contents.length))</span><br><span class="line">  name match &#123;</span><br><span class="line">    case &quot;Aoi Sola&quot; &#x3D;&gt; println(&quot;苍老师&quot;)</span><br><span class="line">    case &quot;YuiHatano&quot; &#x3D;&gt; println(&quot;波老师&quot;)</span><br><span class="line">    case _ &#x3D;&gt; println(&quot;不认识&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>类型匹配</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def matchType(obj: Any) &#x3D; &#123;</span><br><span class="line">  obj match &#123;</span><br><span class="line">    case x: Int &#x3D;&gt; println(&quot;this is Int..&quot;)</span><br><span class="line">    case y: String &#x3D;&gt; println(&quot;this is String ..&quot;)</span><br><span class="line">    case z: Map[_, _] &#x3D;&gt; println(&quot;this is Map ..&quot;)</span><br><span class="line">    case _ &#x3D;&gt; println(&quot;not know ..&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>集合匹配</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def matchCollection(list: List[String]) &#x3D; &#123;</span><br><span class="line">  list match &#123;</span><br><span class="line">    case &quot;ruoze&quot; :: Nil &#x3D;&gt; println(&quot;Hello: ruoze&quot;) &#x2F;&#x2F; 只能匹配只有ruoze一个元素</span><br><span class="line">    case x :: y :: Nil &#x3D;&gt; println(s&quot;Hi: $x , $y&quot;) &#x2F;&#x2F; 能匹配集合中有两个元素的</span><br><span class="line">    case &quot;jepson&quot; :: tail &#x3D;&gt; println(&quot;HI:jepson and others&quot;) &#x2F;&#x2F; 匹配jepson开头的</span><br><span class="line">    case _ &#x3D;&gt; println(&quot;......&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>case class匹配</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">  val caseclasses &#x3D; Array(CheckTimeOutTask, HeartBeat(3000), SubmitTask(&quot;100&quot;, &quot;task100&quot;))</span><br><span class="line">  </span><br><span class="line">  caseclasses(Random.nextInt(caseclasses.length)) match &#123;</span><br><span class="line">    case CheckTimeOutTask &#x3D;&gt; println(&quot;CheckTimeOutTask&quot;)</span><br><span class="line">    case HeartBeat(time) &#x3D;&gt; println(&quot;HeartBeat&quot;)</span><br><span class="line">    case SubmitTask(id, name) &#x3D;&gt; println(&quot;SubmitTask&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">case class SubmitTask(id: String, name: String)</span><br><span class="line"></span><br><span class="line">case class HeartBeat(time: Long)</span><br><span class="line"></span><br><span class="line">case object CheckTimeOutTask</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%89/" data-id="ckbhdlpr1003bc4ud14g7ar4f" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2019/06/13/Linux%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%B3%BB%E5%88%97%E4%B8%80/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Linux基础知识系列一
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/09/10/Scala%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%BA%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">后一篇</strong>
+        <div class="article-nav-title">Scala学习之二</div>
+      </a>
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>

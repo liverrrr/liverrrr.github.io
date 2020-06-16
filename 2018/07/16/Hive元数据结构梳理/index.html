@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="bigdata">
+  
+  
+    <meta name="description" content="Java、大数据相关以及随想感悟">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Hive元数据结构梳理 |
+    
+    趣随记</title>
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  <article id="post-Hive元数据结构梳理" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+  
+    <h1 class="article-title" itemprop="name">
+      Hive元数据结构梳理
+    </h1>
+  
+  
+
+
+
+
+            </header>
+            
+
+                
+                    <div class="article-meta">
+                        <a href="/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" class="article-date">
+  <time datetime="2018-07-16T03:30:39.000Z" itemprop="datePublished">2018-07-16</time>
+</a>
+                            
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+                    </div>
+                    
+
+                        
+                            
+    <div class="tocbot"></div>
+
+
+
+
+
+                                
+
+                                    <div class="article-entry" itemprop="articleBody">
+                                        
+
+
+                                            
+
+                                                
+                                                                    <a id="more"></a>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>通常部署hive会将其元数据存储在外部数据库MySQL中，而元数据对于hive是极其重要的。本篇文章就是对hive的元数据有个简单的认识。</p>
+<h3 id="Hive版本元数据表"><a href="#Hive版本元数据表" class="headerlink" title="Hive版本元数据表"></a>Hive版本元数据表</h3><p>这张表虽然简单，但是其中数据极为重要。如果该表出现问题，根本进入不了Hive-Cli。比如该表不存在，当启动Hive-Cli时候，就会报错”Table ‘hive.version’ doesn’t exist”。</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">VER_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">SCHEMA_VERSION</td>
+<td align="center">版本</td>
+<td align="center">1.1.0</td>
+</tr>
+<tr>
+<td align="center">VERSION_COMMENT</td>
+<td align="center">版本说明</td>
+<td align="center">Set by MetaStore <a href="mailto:hadoop@192.168.0.3">hadoop@192.168.0.3</a></td>
+</tr>
+</tbody></table>
+<h3 id="hive数据库相关的元数据表"><a href="#hive数据库相关的元数据表" class="headerlink" title="hive数据库相关的元数据表"></a>hive数据库相关的元数据表</h3><h4 id="dbs"><a href="#dbs" class="headerlink" title="dbs"></a>dbs</h4><p>存储数据库相关信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">DB_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">DESC</td>
+<td align="center">描述</td>
+<td align="center">Default Hive database</td>
+</tr>
+<tr>
+<td align="center">DB_LOCATION_URI</td>
+<td align="center">存储地址</td>
+<td align="center">hdfs://hadoop001:9000/user/hive/warehouse/ruozedata.db</td>
+</tr>
+<tr>
+<td align="center">NAME</td>
+<td align="center">数据库名称</td>
+<td align="center">ruozedata</td>
+</tr>
+<tr>
+<td align="center">OWNER_NAME</td>
+<td align="center">数据库所有者用户名</td>
+<td align="center">hadoop</td>
+</tr>
+<tr>
+<td align="center">OWNER_TYPE</td>
+<td align="center">所有者角色</td>
+<td align="center">USER</td>
+</tr>
+</tbody></table>
+<h4 id="database-params"><a href="#database-params" class="headerlink" title="database_params"></a>database_params</h4><p>存储数据库的相关参数，在CREATE DATABASE时候用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span><br><span class="line">  [COMMENT database_comment]</span><br><span class="line">  [LOCATION hdfs_path]</span><br><span class="line">  [WITH DBPROPERTIES (property_name&#x3D;property_value, ...)];   &lt;--存储这里的参数</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">DB_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center">createdby</td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center">hadoop</td>
+</tr>
+</tbody></table>
+<h3 id="hive表和视图相关的元数据表"><a href="#hive表和视图相关的元数据表" class="headerlink" title="hive表和视图相关的元数据表"></a>hive表和视图相关的元数据表</h3><h4 id="tbls"><a href="#tbls" class="headerlink" title="tbls"></a>tbls</h4><p>保存表和视图相关基本信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CREATE_TIME</td>
+<td align="center">创建时间</td>
+<td align="center">1563203652</td>
+</tr>
+<tr>
+<td align="center">DB_ID</td>
+<td align="center">关联的数据库ID</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center">LAST_ACCESS_TIME</td>
+<td align="center">上次访问时间</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">OWNER</td>
+<td align="center">拥有者</td>
+<td align="center">hadoop</td>
+</tr>
+<tr>
+<td align="center">RETENTION</td>
+<td align="center">保留字段</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">SD_ID</td>
+<td align="center">序列化配置信息，对应SDS表中的SD_ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">TBL_NAME</td>
+<td align="center">表名</td>
+<td align="center">emp</td>
+</tr>
+<tr>
+<td align="center">TBL_TYPE</td>
+<td align="center">表类型</td>
+<td align="center">MANAGED_TABLE</td>
+</tr>
+<tr>
+<td align="center">VIEW_EXPANDED_TEXT</td>
+<td align="center">视图的详细HQL语句</td>
+<td align="center">select lxw1234.pt, lxw1234.pcid from liuxiaowen.lxw1234</td>
+</tr>
+<tr>
+<td align="center">VIEW_ORIGINAL_TEXT</td>
+<td align="center">视图的原始HQL语句</td>
+<td align="center">select * from lxw1234</td>
+</tr>
+</tbody></table>
+<h4 id="table-params"><a href="#table-params" class="headerlink" title="table_params"></a>table_params</h4><p>该表存储表/视图的属性信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[TBLPROPERTIES (property_name&#x3D;property_value, ...)]   </span><br><span class="line">-- (Note: Available in Hive 0.6.0 and later)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center">COLUMN_STATS_ACCURATE</td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center">true</td>
+</tr>
+</tbody></table>
+<h3 id="hive存储信息相关的元数据表"><a href="#hive存储信息相关的元数据表" class="headerlink" title="hive存储信息相关的元数据表"></a>hive存储信息相关的元数据表</h3><h4 id="sds"><a href="#sds" class="headerlink" title="sds"></a>sds</h4><p>该表保存文件存储的基本信息，如INPUT_FORMAT、OUTPUT_FORMAT、是否压缩等。<br><strong>与tbles相关联可获取表信息</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">SD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CD_ID</td>
+<td align="center">字段信息ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">INPUT_FORMAT</td>
+<td align="center">文件输入格式</td>
+<td align="center">org.apache.hadoop.mapred.TextInputFormat</td>
+</tr>
+<tr>
+<td align="center">IS_COMPRESSED</td>
+<td align="center">是否压缩</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">IS_STOREDASSUBDIRECTORIES</td>
+<td align="center">是否以子目录存储</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">LOCATION</td>
+<td align="center">存储路径</td>
+<td align="center">hdfs://hadoop001:9000/user/hive/warehouse/ruozedata.db/emp</td>
+</tr>
+<tr>
+<td align="center">NUM_BUCKETS</td>
+<td align="center">分桶数量</td>
+<td align="center">-1</td>
+</tr>
+<tr>
+<td align="center">OUTPUT_FORMAT</td>
+<td align="center">文件输出格式</td>
+<td align="center">org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat</td>
+</tr>
+<tr>
+<td align="center">SERDE_ID</td>
+<td align="center">序列化类ID，对应SERDES表</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<h4 id="sd-params"><a href="#sd-params" class="headerlink" title="sd_params"></a>sd_params</h4><p>存储属性信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">SD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h3 id="hive表相关元数据表"><a href="#hive表相关元数据表" class="headerlink" title="hive表相关元数据表"></a>hive表相关元数据表</h3><h4 id="columns-v2"><a href="#columns-v2" class="headerlink" title="columns_v2"></a>columns_v2</h4><p>表相关信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">CD_ID</td>
+<td align="center">主键ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">COMMENT</td>
+<td align="center">注释</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">COLUMN_NAME</td>
+<td align="center">字段名称</td>
+<td align="center">comm</td>
+</tr>
+<tr>
+<td align="center">TYPE_NAME</td>
+<td align="center">字段类型</td>
+<td align="center">double</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">字段顺序</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<h3 id="hive分区相关元数据表"><a href="#hive分区相关元数据表" class="headerlink" title="hive分区相关元数据表"></a>hive分区相关元数据表</h3><h4 id="partitions"><a href="#partitions" class="headerlink" title="partitions"></a>partitions</h4><p>存储相关分区基本信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">CREATE_TIME</td>
+<td align="center">创建时间</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">LAST_ACCESS_TIME</td>
+<td align="center">上次访问时间</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PART_NAME</td>
+<td align="center">分区名称</td>
+<td align="center">date=2019-08-13</td>
+</tr>
+<tr>
+<td align="center">SD_ID</td>
+<td align="center">元数据ID，对应SDS表</td>
+<td align="center">3</td>
+</tr>
+<tr>
+<td align="center">TBL_ID</td>
+<td align="center">表ID，对应TBLS表</td>
+<td align="center">5</td>
+</tr>
+</tbody></table>
+<h4 id="partition-params"><a href="#partition-params" class="headerlink" title="partition_params"></a>partition_params</h4><p>存储分区属性信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PARAM_KEY</td>
+<td align="center">参数key</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PARAM_VALUE</td>
+<td align="center">参数value</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h4 id="partition-keys"><a href="#partition-keys" class="headerlink" title="partition_keys"></a>partition_keys</h4><p>存储分区的字段信息</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">TBL_ID</td>
+<td align="center">表ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PKEY_COMMENT</td>
+<td align="center">分区字段注释</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">PKEY_NAME</td>
+<td align="center">分区字段名称</td>
+<td align="center">date</td>
+</tr>
+<tr>
+<td align="center">PKEY_TYPE</td>
+<td align="center">分区字段数据类型</td>
+<td align="center">string</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">分区字段顺序</td>
+<td align="center">3</td>
+</tr>
+</tbody></table>
+<h4 id="partition-key-vals"><a href="#partition-key-vals" class="headerlink" title="partition_key_vals"></a>partition_key_vals</h4><p>存储分区的字段值</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+<th align="center">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">PART_ID</td>
+<td align="center">分区ID</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">PART_KEY_VAL</td>
+<td align="center">分区字段值</td>
+<td align="center">2019-08-13</td>
+</tr>
+<tr>
+<td align="center">INTEGER_IDX</td>
+<td align="center">分区字段顺序</td>
+<td align="center">3</td>
+</tr>
+</tbody></table>
+
+                                                                        
+                                    </div>
+                                    <footer class="article-footer">
+                                        <a data-url="http://yoursite.com/2018/07/16/Hive%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" data-id="ckbhdlpqh001gc4udgkwp1i36" class="article-share-link">
+                                            分享
+                                        </a>
+                                        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+
+                                    </footer>
+
+    </div>
+
+    
+        
+  <nav class="article-nav">
+    
+      <a href="/2018/07/17/Hive%E5%88%9D%E8%AF%86/" class="article-nav-link">
+        <strong class="article-nav-caption">前一篇</strong>
+        <div class="article-nav-title">
+          
+            Hive初识
+          
+        </div>
+      </a>
+    
+    
+  </nav>
+
+
+            
+
+                
+                    
+                        
+  <div class="gitalk" id="gitalk-container"></div>
+  
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+  
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: 'b1d57bf081b044ac843f',
+      clientSecret: 'ec3246ee68621c081334170e43f36dfefe9f535a',
+      repo: 'gitTalk',
+      owner: 'liverrrr',
+      admin: ['liverrrr'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+                            
+
+</article>
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 趣随记</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+<aside class="sidebar">
+  <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/hexo.svg" alt="趣随记"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/gallery">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/categories">类别</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+</aside>
+
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+
+</body>
+</html>
